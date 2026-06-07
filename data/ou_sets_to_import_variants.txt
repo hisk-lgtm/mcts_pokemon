@@ -1,0 +1,1183 @@
+Tyranitar @ Choice Band
+Ability: Sand Stream
+Level: 50
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Crunch
+- Stone Edge
+- Superpower
+- Earthquake
+
+Scizor @ Choice Band
+Ability: Technician
+Level: 50
+EVs: 248 HP / 252 Atk / 8 SpD
+Adamant Nature
+- Bullet Punch
+- U-turn
+- Superpower
+- Bug Bite
+
+Garchomp @ Life Orb
+Ability: Rough Skin
+Level: 50
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Swords Dance
+- Earthquake
+- Dragon Claw
+- Fire Punch
+
+Rotom-Wash @ Leftovers
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 252 Def / 4 Spe
+Bold Nature
+- Hydro Pump
+- Volt Switch
+- Will-O-Wisp
+- Thunderbolt
+
+Starmie @ Life Orb
+Ability: Natural Cure
+Level: 50
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Hydro Pump
+- Ice Beam
+- Thunderbolt
+- Rapid Spin
+
+Ferrothorn @ Leftovers
+Ability: Iron Barbs
+Level: 50
+EVs: 252 HP / 88 Def / 168 SpD
+Relaxed Nature
+- Spikes
+- Stealth Rock
+- Giga Drain
+- Thunder Wave
+
+Dragonite @ Lum Berry
+Ability: Multiscale
+Level: 50
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Dragon Dance
+- Dragon Claw
+- Fire Punch
+- ExtremeSpeed
+
+Conkeldurr @ Leftovers
+Ability: Guts
+Level: 50
+EVs: 120 HP / 252 Atk / 136 SpD
+Adamant Nature
+- Drain Punch
+- Mach Punch
+- Facade
+- Thunder Punch
+
+Gengar @ Focus Sash / Life Orb
+Ability: Cursed Body
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Shadow Ball
+- Focus Blast
+- Hidden Power Ice / Sludge Wave
+- Nasty Plot
+
+
+
+Gengar @ Black Sludge / Salac Berry
+Ability: Cursed Body
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Shadow Ball
+- Focus Blast
+- Substitute / Endure
+- Nasty Plot
+
+
+Gengar @ Choice Specs / Choice Scarf
+Ability: Cursed Body
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Shadow Ball
+- Focus Blast
+- Hidden Power Ice / Sludge Wave / Thunderbolt
+- Trick
+
+Weezing @ Black Sludge / Rocky Helmet
+Ability: Neutralizing Gas
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Sludge Bomb
+- Flamethrower / Thunderbolt
+- Will-O-Wisp / Toxic / Toxic Spikes
+- Pain Split / Protect
+
+Chansey @ Eviolite
+Ability: Natural Cure
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Seismic Toss / Psywave
+- Teleport
+- Soft-Boiled
+- Wish
+
+
+Chansey @ Eviolite
+Ability: Natural Cure
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Seismic Toss / Psywave
+- Soft-Boiled
+- Toxic / Teleport
+- Stealth Rock
+
+Starmie @ Life Orb / Leftovers
+Ability: Analytic
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Surf / Hydro Pump
+- Psyshock / Psychic / Thunderbolt
+- Rapid Spin
+- Ice Beam
+
+
+Starmie @ Choice Specs / Expert Belt
+Ability: Analytic
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Surf / Hydro Pump
+- Psyshock / Psychic / Hidden Power Fire
+- Ice Beam
+- Trick / Thunderbolt
+
+
+Starmie @ Leftovers
+Ability: Natural Cure
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Scald
+- Ice Beam / Toxic
+- Rapid Spin
+- Recover
+
+Gyarados @ Leftovers / Lum Berry / Life Orb
+Ability: Moxie / Intimidate
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly / Adamant Nature
+- Waterfall
+- Power Whip
+- Ice Fang / Bounce
+- Dragon Dance
+
+
+Gyarados @ Leftovers
+Ability: Intimidate
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly / Adamant Nature
+- Waterfall
+- Bounce
+- Substitute
+- Dragon Dance
+
+Kabutops @ Life Orb
+Ability: Swift Swim
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant Nature
+- Stone Edge
+- Waterfall
+- Superpower
+- Aqua Jet / Swords Dance
+
+
+Kabutops @ Choice Band
+Ability: Swift Swim
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant Nature
+- Stone Edge
+- Waterfall
+- Superpower
+- Aqua Jet
+
+Zapdos @ Leftovers
+Ability: Pressure
+Level: 50
+EVs: 252 HP / 156 Def / 100 Spe or 252 HP / 156 SpD / 100 Spe
+Timid Nature
+- Volt Switch
+- Hurricane / Hidden Power Ice
+- Roost
+- Defog / Heat Wave
+
+
+Zapdos @ Leftovers
+Ability: Pressure
+Level: 50
+EVs: 252 HP / 228 Def / 28 Spe or 252 HP / 228 SpD / 28 Spe
+Bold / Calm Nature
+- Volt Switch
+- Hurricane / Toxic
+- Roost
+- Defog / Heat Wave
+
+
+Zapdos @ Choice Specs
+Ability: Pressure
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Timid Nature
+- Volt Switch
+- Thunderbolt
+- Hidden Power [Ice]
+- Hurricane
+
+Dragonite @ Leftovers / Dragon Gem / Lum Berry
+Ability: Multiscale
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Dragon Claw
+- Fire Punch
+- Extreme Speed / Roost
+- Dragon Dance
+
+
+Dragonite @ Choice Band
+Ability: Multiscale
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Dragon Claw
+- Fire Punch
+- Extreme Speed
+- Superpower
+
+
+Dragonite @ Dragon Gem / Life Orb / White Herb
+Ability: Multiscale
+Level: 50
+EVs: 6 Atk / 252 SpA / 252 Spe
+Rash Nature
+- Draco Meteor
+- Flamethrower
+- Extreme Speed
+- Superpower
+
+Espeon @ Leftovers
+Ability: Magic Bounce
+Level: 50
+EVs: 252 HP / 220 Def / 36 Spe
+Bold Nature
+- Psychic
+- Baton Pass / Calm Mind
+- Wish
+- Protect
+
+
+Espeon @ Light Clay
+Ability: Magic Bounce
+Level: 50
+EVs: 252 HP / 6 SpD / 252 Spe
+Timid Nature
+- Psychic
+- Baton Pass
+- Reflect
+- Light Screen
+
+Espeon @ Choice Specs / Choice Scarf
+Ability: Magic Bounce
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Psychic / Psyshock
+- Hidden Power Fire / Hidden Power Fight
+- Signal Beam / Shadow Ball / Grass Knot
+- Trick
+
+Scizor @ Choice Band
+Ability: Technician
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe  or  236 HP / 252 Atk / 20 Spe
+Adamant Nature
+- Bullet Punch
+- U-turn
+- Close Combat
+- Pursuit
+
+
+Scizor @ Life Orb / Leftovers
+Ability: Technician
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Bullet Punch
+- Bug Bite / Psycho Cut
+- Close Combat
+- Swords Dance
+
+
+Scizor @ Leftovers
+Ability: Technician
+Level: 50
+EVs: 236 HP / 252 Atk / 20 Spe
+Adamant Nature
+- Bullet Punch
+- Acrobatics / Thief
+- Roost
+- Swords Dance
+
+Skarmory @ Leftovers / Rocky Helmet
+Ability: Sturdy
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+- Brave Bird
+- Roost
+- Whirlwind / Counter
+- Stealth Rock / Spikes / Defog
+
+
+Skarmory @ Custap Berry / Mental Herb
+Ability: Sturdy
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Brave Bird
+- Taunt
+- Spikes
+- Stealth Rock
+
+Kingdra @ Choice Specs / Life Orb
+Ability: Swift Swim
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Modest Nature
+- Surf
+- Hurricane / Hydro Pump
+- Dragon Pulse
+- Draco Meteor
+
+Porygon2 @ Eviolite
+Ability: Trace
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpD or 252 HP / 252 Def / 6 SpD
+Calm / Bold Nature
+- Discharge / Tri Attack
+- Ice Beam
+- Toxic / Teleport
+- Recover
+
+Suicune @ Leftovers
+Ability: Pressure
+Level: 50
+EVs: 252 HP / 6 SpD / 252 Spe
+Timid Nature
+- Scald
+- Protect / Ice Beam
+- Substitute
+- Calm Mind
+
+
+Suicune @ Leftovers
+Ability: Pressure
+Level: 50
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+- Scald
+- Roar / Sleep Talk
+- Calm Mind
+- Rest
+
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Scald
+- Hurricane / Defog
+- Roost
+- U-turn
+
+
+Pelipper @ Choice Scarf
+Ability: Drizzle
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Surf
+- Hurricane
+- Ice Beam
+- U-turn
+
+Breloom @ Focus Sash / Life Orb
+Ability: Technician
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant / Jolly Nature
+- Mach Punch
+- Bullet Seed
+- Zen Headbutt / Rock Tomb
+- Spore / Swords Dance
+
+
+Breloom @ Choice Band
+Ability: Technician
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant / Jolly Nature
+- Close Combat
+- Mach Punch
+- Zen Headbutt / Rock Tomb
+- Bullet Seed
+
+Torkoal @ Heat Rock / Eject Button
+Ability: Drought
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Relaxed Nature
+- Lava Plume
+- Explosion / Toxic / Will-O-Wisp
+- Rapid Spin
+- Stealth Rock
+
+Crawdaunt @ Choice Band
+Ability: Adaptability
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Crabhammer
+- Crunch
+- Aqua Jet
+- Close Combat
+
+Crawdaunt @ Life Orb
+Ability: Adaptability
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Crabhammer
+- Crunch
+- Aqua Jet
+- Swords Dance
+
+Metagross @ Rocky Helmet / Leftovers
+Ability: Clear Body
+Level: 50
+EVs: 252 HP / 252 Atk / 6 SpD or 252 HP / 252 Def / 6 Atk
+Adamant / Impish Nature
+- Zen Headbutt / Thunder Punch / Toxic
+- Ice Punch
+- Bullet Punch / Earthquake / Hammer Arm
+- Stealth Rock
+
+
+Metagross @ Shuca Berry / Custap Berry
+Ability: Clear Body
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe or 252 HP / 252 Atk / 6 Spe
+Adamant Nature
+- Zen Headbutt / Heavy Slam
+- Ice Punch / Earthquake
+- Explosion
+- Stealth Rock
+
+Metagross @ Choice Band / Choice Scarf
+Ability: Clear Body
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Zen Headbutt
+- Heavy Slam
+- Ice Punch
+- Trick / Earthquake / Hammer Arm
+
+Infernape @ Choice Scarf / Choice Band
+Ability: Blaze / Iron Fist
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Jolly Nature
+- Close Combat
+- Flare Blitz
+- Stone Edge / Thunder Punch / Mach Punch
+- U-turn / Switcheroo
+
+
+Infernape @ Life Orb
+Ability: Blaze
+Level: 50
+EVs: 92 Atk / 164 SpA / 252 Spe
+Naive Nature
+- Close Combat
+- Overheat
+- Vacuum Wave / Thunder Punch
+- Hidden Power Ice
+
+
+Infernape @ Focus Sash
+Ability: Blaze
+Level: 50
+EVs: 6 Atk / 252 SpA / 252 Spe
+Naive Nature
+- Close Combat
+- Overheat
+- Taunt
+- Stealth Rock
+
+Empoleon @ Leftovers / Shuca Berry
+Ability: Defiant
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpD
+Calm Nature
+- Scald
+- Ice Beam / Toxic / Roar
+- Roost
+- Stealth Rock / Defog
+
+Staraptor @ Choice Band / Choice Scarf
+Ability: Reckless
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Brave Bird
+- U-turn
+- Double-Edge
+- Close Combat
+
+Gastrodon @ Leftovers
+Ability: Storm Drain
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Scald
+- Ice Beam / Earth Power
+- Recover
+- Stealth Rock / Spikes / Toxic
+
+
+Gastrodon @ Leftovers
+Ability: Storm Drain
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpD
+Calm Nature
+- Scald
+- Ice Beam / Earth Power
+- Recover
+- Stealth Rock / Spikes / Toxic
+
+Bronzong @ Mental Herb / Leftovers
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpD or 252 HP / 252 Def / 6 SpD
+Sassy / Relaxed Nature
+- Explosion
+- Earthquake / Night Shade
+- Trick Room
+- Stealth Rock
+
+
+Bronzong @ Leftovers
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD or 252 HP / 6 Def / 252 SpDef
+Bold / Calm Nature
+- Psywave
+- Hidden Power Ice / Rest
+- Toxic / Skill Swap
+- Stealth Rock
+
+
+Bronzong @ Leftovers
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 252 SpA / 6 Spe
+Modest Nature
+- Future Sight
+- Hidden Power Ice
+- Toxic / Protect
+- Stealth Rock
+
+Garchomp @ Life Orb / Focus Sash
+Ability: Rough Skin
+Level: 50
+EVs: 6 Atk / 252 SpA / 252 Spe
+Naive Nature
+- Earthquake
+- Draco Meteor
+- Flamethrower / Fire Blast
+- Stealth Rock
+
+
+Garchomp @ Choice Scarf / Choice Band
+Ability: Rough Skin
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Jolly Nature
+- Earthquake
+- Dragon Claw / Dual Chop
+- Stone Edge / Rock Slide
+- Fire Fang / Aqua Tail
+
+
+Garchomp @ Rocky Helmet / Leftovers
+Ability: Rough Skin
+Level: 50
+EVs: 252 HP / 244 Def / 12 Spe
+Impish Nature
+- Earthquake
+- Dragon Tail / Dragon Claw
+- Toxic / Endure / Fire Blast
+- Stealth Rock
+
+
+Garchomp @ Dragon Gem / Lum Berry
+Ability: Rough Skin
+Level: 50
+EVs: 252 Atk / 6 SpA / 252 Spe
+Jolly / Naive Nature
+- Earthquake
+- Dragon Rush
+- Fire Blast
+- Hone Claws
+
+Lucario @ Life Orb / Focus Sash
+Ability: Inner Focus
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant / Jolly  Nature
+- Close Combat
+- Ice Punch / Meteor Mash
+- Extreme Speed
+- Swords Dance
+
+
+Lucario @ Life Orb / Focus Sash
+Ability: Steadfast
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Modest / Timid Nature
+- Aura Sphere
+- Flash Cannon / Dark Pulse
+- Vacuum Wave
+- Nasty Plot
+
+Weavile @ Choice Band / Life Orb
+Ability: Pressure
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Jolly Nature
+- Icicle Spear
+- Night Slash
+- Ice Shard / Low Kick
+- Pursuit
+
+
+Weavile @ Dark Gem / Focus Sash
+Ability: Pickpocket
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Jolly Nature
+- Icicle Spear
+- Night Slash
+- Low Kick / Ice Shard
+- Swords Dance
+
+Magnezone @ Choice Scarf
+Ability: Magnet Pull
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Timid Nature
+- Volt Switch
+- Thunderbolt
+- Hidden Power Fire
+- Flash Cannon
+
+
+Magnezone @ Leftovers
+Ability: Magnet Pull
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Modest Nature
+- Charge Beam
+- Flash Cannon
+- Substitute
+- Agility
+
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 50
+EVs: 252 HP / 6 SpD / 252 Spe or 252 HP / 252 Def / 6 Spe
+Timid / Bold Nature
+- Air Slash
+- Roost / Soft-Boiled
+- Heal Bell / Thunder Wave
+- Calm Mind / Nasty Plot
+
+
+Togekiss @ Choice Scarf
+Ability: Serene Grace
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Timid Nature
+- Air Slash
+- Aura Sphere
+- Flamethrower / Tri Attack
+- Trick
+
+Gliscor @ Toxic Orb
+Ability: Poison Heal
+Level: 50
+EVs: 204 HP / 244 Def / 60 Spe or 204 HP / 244 SpDef / 60 Spe
+Impish / Careful Nature
+- Earthquake
+- U-turn / Toxic / Ice Fang
+- Roost
+- Stealth Rock / Spikes / Defog
+
+
+Gliscor @ Toxic Orb
+Ability: Poison Heal
+Level: 50
+EVs: 204 HP / 244 SpD / 60 Spe
+Careful Nature
+- Earthquake
+- Facade
+- Protect / Roost
+- Swords Dance
+
+
+Gliscor @ Toxic Orb
+Ability: Poison Heal
+Level: 50
+EVs: 204 HP / 52 SpD / 252 Spe
+Jolly Nature
+- Earthquake
+- Toxic
+- Substitute / Taunt
+- Protect
+
+Mamoswine @ Focus Sash
+Ability: Thick Fat
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant / Jolly Nature
+- Earthquake
+- Icicle Spear / Icicle Crash
+- Ice Shard / Endeavor
+- Stealth Rock
+
+
+Mamoswine @ Choice Band / Life Orb / Assault Vest
+Ability: Thick Fat
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant Nature
+- Earthquake
+- Icicle Crash / Icicle Spear
+- Ice Shard
+- Superpower / Smack Down
+
+Mamoswine @ Leftovers
+Ability: Thick Fat
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Earthquake
+- Icicle Crash / Smack Down
+- Ice Shard
+- Substitute
+
+Gallade @ Life Orb / Lum Berry
+Ability: Sharpness
+Level: 50
+EVs: 252 Atk / 6 Def / 252 Spe
+Adamant / Jolly Nature
+- Sacred Sword
+- Psycho Cut
+- Ice Punch / Leaf Blade / Shadow Snake
+- Swords Dance
+
+
+Gallade @ Choice Scarf / Choice Band
+Ability: Sharpness
+Level: 50
+EVs: 252 Atk / 6 Def / 252 Spe
+Adamant / Jolly Nature
+- Sacred Sword
+- Psycho Cut
+- Ice Punch / Leaf Blade/ Night Slash
+- Trick
+
+
+Gallade @ Assault Vest
+Ability: Sharpness
+Level: 50
+EVs: 252 Atk / 6 SpD / 252 Spe
+Adamant / Jolly Nature
+- Sacred Sword
+- Psycho Cut
+- Ice Punch
+- Leaf Blade / Night Slash / Shadow Sneak
+
+Rotom-Wash @ Leftovers
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 164 Def / 92 Spe or 252 HP / 164 SpD / 92 Spe
+Bold / Calm Nature
+- Volt Switch
+- Hydro Pump
+- Will-O-Wisp / Pain Split
+- Defog
+
+
+Rotom-Wash @ Choice Scarf
+Ability: Levitate
+Level: 50
+EVs: 252 HP / 6 SpA / 252 Spe
+Timid Nature
+- Volt Switch
+- Hydro Pump
+- Defog
+- Trick
+
+Serperior @ Leftovers
+Ability: Contrary
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Leaf Storm
+- Hidden Power Fire / Rock
+- Dragon Pulse
+- Glare / Substitute / Taunt
+
+
+Serperior @ Assault Vest / Life Orb
+Ability: Contrary
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Leaf Storm
+- Hidden Power Fire / Rock
+- Dragon Pulse
+- Giga Drain
+
+
+Serperior @ Leftovers
+Ability: Contrary
+Level: 50
+EVs: 252 HP / 244 Def / 12 Spe
+Timid Nature
+- Leaf Storm
+- Glare / Hidden Power Fire
+- Synthesis
+- Defog
+
+Excadrill @ Focus Sash
+Ability: Mold Breaker
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Earthquake
+- Rock Slide / Rock Tomb / Toxic
+- Rapid Spin
+- Stealth Rock
+
+
+Excadrill @ Focus Sash / Life Orb
+Ability: Mold Breaker
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Earthquake
+- Rock Slide
+- Iron Head / Rapid Spin
+- Swords Dance
+
+
+Excadrill @ Life Orb
+Ability: Sand Rush
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Earthquake
+- Rock Slide
+- Iron Head / Rapid Spin
+- Swords Dance
+
+Conkeldurr @ Flame Orb
+Ability: Guts
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Close Combat / Drain Punch
+- Mach Punch
+- Ice Punch
+- Thunder Punch / Earthquake / Facade
+
+
+Conkeldurr @ Life Orb
+Ability: Sheer Force
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Close Combat
+- Mach Punch
+- Ice Punch
+- Thunder Punch / Earthquake
+
+
+Conkeldurr @ Leftovers
+Ability: Guts
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpD
+Careful Nature
+- Drain Punch
+- Mach Punch
+- Rock Blast / Ice Punch
+- Bulk Up
+
+Darmanitan @ Choice Scarf / Choice Band
+Ability: Sheer Force
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant / Jolly Nature
+- Flare Blitz
+- U-turn
+- Rock Slide
+- Trick / Superpower
+
+Reuniclus @ Leftovers / Rocky Helmet
+Ability: Magic Guard
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Psyshock / Psychic
+- Focus Blast
+- Calm Mind
+- Recover
+
+
+Reuniclus @ Rocky Helmet
+Ability: Magic Guard
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Stored Power
+- Recover
+- Calm Mind
+- Acid Armor
+
+
+Reuniclus @ Life Orb
+Ability: Magic Guard
+Level: 50
+EVs: 252 HP / 6 Def / 252 SpA
+Quiet Nature
+- Psyshock
+- Focus Blast
+- Shadow Ball
+- Trick Room
+
+Amoonguss @ Rocky Helmet
+Ability: Regenerator
+Level: 50
+EVs: 236 HP / 252 Def / 20 SpD
+Bold Nature
+- Giga Drain
+- Sludge Bomb / Clear Smog
+- Spore / Synthesis
+- Foul Play / Hidden Power Fire
+
+
+Amoonguss @ Black Sludge
+Ability: Regenerator
+Level: 50
+EVs: 236 HP / 20 Def / 252 SpD
+Calm Nature
+- Giga Drain
+- Sludge Bomb / Clear Smog
+- Spore / Synthesis
+- Foul Play / Hidden Power Fire
+
+Amoonguss @ Assault Vest
+Ability: Regenerator
+Level: 50
+EVs: 236 HP / 116 Def / 156 SpD
+Calm Nature
+- Giga Drain
+- Sludge Bomb / Clear Smog
+- Foul Play / Hidden Power Fire
+- Clear Smog
+
+Jellicent @ Leftovers
+Ability: Cursed Body
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+- Scald
+- Ice Beam / Toxic
+- Taunt / Will-O-Wisp
+- Recover
+
+Ferrothorn @ Leftovers
+Ability: Iron Barbs
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpD or 252 HP / 6 Def / 252 SpD
+Relaxed / Sassy Nature
+- Power Whip
+- Gyro Ball / Thunder Wave
+- Leech Seed
+- Stealth Rock / Spikes
+
+
+
+Ferrothorn @ Custap Berry
+Ability: Iron Barbs
+Level: 50
+EVs: 252 HP / 252 Atk / 6 SpD
+Brave Nature
+- Power Whip
+- Gyro Ball
+- Explosion
+- Stealth Rock
+
+Chandelure @ Choice Scarf / Choice Specs
+Ability: Infiltrator / Flash Fire
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Shadow Ball
+- Flamethrower
+- Hidden Power Ice / Fight
+- Trick / Energyball
+
+
+
+Chandelure @ Leftovers
+Ability: Flash Fire / Infiltrator
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid Nature
+- Shadow Ball
+- Flamethrower
+- Calm Mind
+- Substitute
+
+Haxorus @ Life Orb / Leftovers
+Ability: Mold Breaker
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Dragon Claw
+- Close Combat
+- Earthquake
+- Dragon Dance
+
+Haxorus @ Choice Band / Choice Scarf
+Ability: Mold Breaker
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Adamant Nature
+- Dragon Claw
+- Close Combat
+- Earthquake
+- Rock Slide / Aqua Tail
+
+Mienshao @ Assault Vest
+Ability: Regenerator
+Level: 50
+EVs: 100 HP / 156 SpD / 252 Spe or 244 HP / 244 SpD / 20 Spe
+Jolly / Careful Nature
+- Close Combat
+- U-turn
+- Rock Slide / Rock Tomb
+- Knock Off
+
+
+Mienshao @ Life Orb / Choice Scarf
+Ability: Regenerator
+Level: 50
+EVs: 6 HP / 252 Atk / 252 Spe
+Jolly / Naive Nature
+- Close Combat
+- U-turn
+- Stone Edge
+- Fake Out / Hidden Power Ice / Knock Off
+
+Hydreigon @ Leftovers / Haban Berry
+Ability: Levitate
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid / Modest Nature
+- Dragon Pulse
+- Focus Blast / Flamethrower
+- Substitute / Taunt
+- Nasty Plot
+
+Hydreigon @ Choice Scarf / Choice Specs
+Ability: Levitate
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid / Modest Nature
+- Dragon Pulse
+- Flamethrower
+- Dark Pulse / Focus Blast
+- U-turn
+
+
+Hydreigon @ Haban Berry / Focus Sash
+Ability: Levitate
+Level: 50
+EVs: 252 SpA / 6 SpD / 252 Spe
+Timid / Modest Nature
+- Dragon Pulse
+- Flamethrower
+- Roost / Taunt
+- Stealth Rock
+
+Volcarona @ Leftovers / Life Orb
+Ability: Flame Body
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Timid Nature
+- Fiery Dance
+- Bug Buzz
+- Giga Drain / Hidden Power Ice
+- Quiver Dance
+
+Volcarona @ Leftovers
+Ability: Flame Body
+Level: 50
+EVs: 244 HP / 244 Def / 20 Spe
+Bold Nature
+- Flamethrower
+- Bug Buzz / Safeguard
+- Roost
+- Quiver Dance
+
+
+Volcarona @ Choice Specs
+Ability: Flame Body
+Level: 50
+EVs: 6 HP / 252 SpA / 252 Spe
+Timid Nature
+- Fiery Dance / Overheat
+- Bug Buzz
+- Hidden Power Ice / Psychic
+- U-turn  

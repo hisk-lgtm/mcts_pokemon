@@ -1,0 +1,4 @@
+examples/training_logs/*
+.venv/*
+.idea/*
+.pytest_cache/*

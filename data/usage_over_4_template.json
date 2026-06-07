@@ -1,0 +1,96 @@
+{
+  "format": "PokeMMO OU",
+  "source": "Manual export from in-game PvP statistics or trusted current source",
+  "cutoff_percent": 4.0,
+  "pokemon": [
+    {
+      "species": "Tyranitar",
+      "usage_percent": null,
+      "roles": [
+        "sand",
+        "breaker",
+        "special-check"
+      ]
+    },
+    {
+      "species": "Scizor",
+      "usage_percent": null,
+      "roles": [
+        "priority",
+        "pivot",
+        "revenge-killer"
+      ]
+    },
+    {
+      "species": "Garchomp",
+      "usage_percent": null,
+      "roles": [
+        "breaker",
+        "sweeper",
+        "rocker"
+      ]
+    },
+    {
+      "species": "Rotom-Wash",
+      "usage_percent": null,
+      "roles": [
+        "pivot",
+        "burn-spreader",
+        "ground-immune"
+      ]
+    },
+    {
+      "species": "Ferrothorn",
+      "usage_percent": null,
+      "roles": [
+        "hazards",
+        "water-check",
+        "dragon-check"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "item": "Leftovers",
+      "usage_percent": null
+    },
+    {
+      "item": "Choice Band",
+      "usage_percent": null
+    },
+    {
+      "item": "Choice Scarf",
+      "usage_percent": null
+    },
+    {
+      "item": "Life Orb",
+      "usage_percent": null
+    },
+    {
+      "item": "Rocky Helmet",
+      "usage_percent": null
+    }
+  ],
+  "moves": [
+    {
+      "move": "Stealth Rock",
+      "usage_percent": null
+    },
+    {
+      "move": "Spikes",
+      "usage_percent": null
+    },
+    {
+      "move": "U-turn",
+      "usage_percent": null
+    },
+    {
+      "move": "Volt Switch",
+      "usage_percent": null
+    },
+    {
+      "move": "Scald",
+      "usage_percent": null
+    }
+  ]
+}
