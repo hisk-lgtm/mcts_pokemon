@@ -78,6 +78,7 @@ It should not care whether the physics came from our Python simulator or a Node/
 - [x] Verify local Node bridge can import the simulator.
 - [x] Run a fixed test battle from the Node bridge.
 - [x] Return structured JSON: logs, winner, side state, active Pokémon.
+- [x] Return first-pass legal-action metadata for moves: id/name, type, category, base power, accuracy, priority.
 - [x] Convert Python `PokemonSet` to Showdown set payload/importable text.
 - [x] Convert Python `Action` to Showdown choice strings.
 - [ ] Replace stateless replay calls with a persistent worker once correctness is trusted.
@@ -100,6 +101,7 @@ It should not care whether the physics came from our Python simulator or a Node/
 - [x] Compare Python engine results against Showdown backend on golden cases.
 - [x] Add backend self-play recorder that emits JSONL decision samples.
 - [x] Add backend-neutral feature extraction for recorded summaries.
+- [x] Preserve move metadata in backend actions, JSONL records, and action features.
 - [x] Add trainer that consumes backend JSONL records.
 - [ ] Decide how much of training can become backend-neutral versus Python-feature-dependent.
 
@@ -110,7 +112,10 @@ It should not care whether the physics came from our Python simulator or a Node/
 - [x] Record backend self-play decisions as JSONL with legal actions, chosen action, MCTS stats, final winner, and value target.
 - [x] Add `backend_features.py` to featurize `state_summary` dictionaries instead of Python-only `BattleState` objects.
 - [x] Add a trainer that consumes JSONL records before trying to merge the path into `training.py`.
-- [ ] Add a backend evaluation harness for random, material-greedy, trained-agent, and MCTS policies.
+- [x] Add a backend evaluation harness for random, trained-agent, and MCTS policies.
+- [x] Add first-pass move metadata features.
+- [ ] Add material-greedy opponent policy.
+- [ ] Add type-effectiveness, STAB, and rough damage-estimate features.
 
 ## Do not do
 

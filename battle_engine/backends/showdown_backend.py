@@ -66,7 +66,10 @@ def showdown_team_text(team: list[PokemonSet]) -> str:
 def _action_to_payload(action: Action | None) -> dict[str, Any] | None:
     if action is None:
         return None
-    return {"kind": action.kind, "index": action.index}
+    payload: dict[str, Any] = {"kind": action.kind, "index": action.index}
+    if action.metadata:
+        payload.update(copy.deepcopy(action.metadata))
+    return payload
 
 
 def _payload_to_actions(raw_actions: list[dict[str, Any]]) -> list[Action]:
@@ -75,7 +78,8 @@ def _payload_to_actions(raw_actions: list[dict[str, Any]]) -> list[Action]:
         kind = raw.get("kind")
         index = raw.get("index")
         if kind in {"move", "switch"} and isinstance(index, int):
-            actions.append(Action(kind, index))
+            metadata = {key: copy.deepcopy(value) for key, value in raw.items() if key not in {"kind", "index"}}
+            actions.append(Action(kind, index, metadata))
     return actions
 
 

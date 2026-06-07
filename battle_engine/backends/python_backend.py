@@ -11,6 +11,44 @@ from ..model import Action, BattleState, PokemonSet, make_battle
 from .base import BattleBackend, BackendTurnResult
 
 
+def _move_id(name: str) -> str:
+    return "".join(ch for ch in name.lower() if ch.isalnum())
+
+
+def _move_metadata(move_name: str) -> dict[str, Any]:
+    from ..data import MOVES
+
+    data = MOVES.get(move_name)
+    if data is None:
+        return {"id": _move_id(move_name), "name": move_name}
+    return {
+        "id": _move_id(move_name),
+        "name": move_name,
+        "type": data.type,
+        "category": data.category,
+        "base_power": data.power,
+        "accuracy": data.accuracy,
+        "priority": data.priority,
+        "contact": data.contact,
+        "effect": data.effect,
+    }
+
+
+def _switch_metadata(state: BattleState, player: int, index: int) -> dict[str, Any]:
+    team = state.p1 if player == 1 else state.p2
+    if index < 0 or index >= len(team.mons):
+        return {}
+    mon = team.mons[index]
+    return {
+        "species": mon.species,
+        "hp": mon.hp,
+        "max_hp": mon.max_hp,
+        "hp_fraction": mon.hp / mon.max_hp if mon.max_hp > 0 else 0.0,
+        "status": mon.status,
+        "fainted": mon.fainted or mon.hp <= 0,
+    }
+
+
 class PythonBattleBackend(BattleBackend):
     """Adapter around the current Python battle engine."""
 
@@ -43,7 +81,18 @@ class PythonBattleBackend(BattleBackend):
         return self.state_summary()
 
     def legal_actions(self, player: int) -> list[Action]:
-        return engine_legal_actions(self._require_state(), player)
+        state = self._require_state()
+        team = state.p1 if player == 1 else state.p2
+        active = team.active_mon()
+        enriched: list[Action] = []
+        for action in engine_legal_actions(state, player):
+            if action.kind == "move" and 0 <= action.index < len(active.moves):
+                enriched.append(Action(action.kind, action.index, _move_metadata(active.moves[action.index])))
+            elif action.kind == "switch":
+                enriched.append(Action(action.kind, action.index, _switch_metadata(state, player, action.index)))
+            else:
+                enriched.append(action)
+        return enriched
 
     def step(
         self,

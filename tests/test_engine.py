@@ -2320,3 +2320,115 @@ def test_evaluate_backend_agent_script_help_runs():
 
     assert result.returncode == 0
     assert "Evaluate a saved backend policy/value agent" in result.stdout
+
+
+def test_action_metadata_does_not_affect_action_identity():
+    left = Action("move", 0, {"id": "crunch"})
+    right = Action("move", 0, {"id": "stoneedge"})
+
+    assert left == right
+    assert len({left, right}) == 1
+
+
+def test_python_backend_legal_actions_include_move_metadata():
+    from battle_engine.backend_features import backend_action_features, backend_action_label
+    from battle_engine.backends import PythonBattleBackend
+
+    backend = PythonBattleBackend([TYRANITAR_CB], [DRAGONITE_DD], seed=401)
+    crunch = next(action for action in backend.legal_actions(1) if action.kind == "move" and action.index == 0)
+
+    assert crunch.metadata["name"] == "Crunch"
+    assert crunch.metadata["type"] == "Dark"
+    assert crunch.metadata["category"] == "physical"
+    assert crunch.metadata["base_power"] == 80
+    assert backend_action_label(crunch) == "move:crunch"
+
+    features = backend_action_features(backend.state_summary(), 1, crunch)
+    assert features["move_base_power"] == 0.8
+    assert features["move_accuracy"] == 1.0
+    assert features["move_is_physical"] == 1.0
+    assert features["move_type_dark"] == 1.0
+
+
+def test_backend_selfplay_action_payload_preserves_action_metadata():
+    from examples.backend_selfplay import action_to_payload
+
+    payload = action_to_payload(
+        Action(
+            "move",
+            1,
+            {
+                "id": "stoneedge",
+                "name": "Stone Edge",
+                "type": "Rock",
+                "category": "physical",
+                "base_power": 100,
+                "accuracy": 80,
+            },
+        )
+    )
+
+    assert payload == {
+        "kind": "move",
+        "index": 1,
+        "id": "stoneedge",
+        "name": "Stone Edge",
+        "type": "Rock",
+        "category": "physical",
+        "base_power": 100,
+        "accuracy": 80,
+    }
+
+
+def test_backend_action_features_use_move_metadata_from_payload():
+    from battle_engine.backend_features import backend_action_features, backend_action_label, action_from_payload
+
+    summary = {
+        "weather": None,
+        "terrain": None,
+        "p1": {"active": "Tyranitar", "hp": 176, "max_hp": 176, "status": None, "alive": 1, "hazards": {}},
+        "p2": {"active": "Dragonite", "hp": 20, "max_hp": 167, "status": None, "alive": 1, "hazards": {}},
+    }
+    payload = {
+        "kind": "move",
+        "index": 1,
+        "id": "stoneedge",
+        "name": "Stone Edge",
+        "type": "Rock",
+        "category": "physical",
+        "base_power": 100,
+        "accuracy": 80,
+        "priority": 0,
+    }
+
+    action = action_from_payload(payload)
+    features = backend_action_features(summary, 1, action)
+
+    assert action.metadata["id"] == "stoneedge"
+    assert backend_action_label(action) == "move:stoneedge"
+    assert features["move_base_power"] == 1.0
+    assert features["move_accuracy"] == 0.8
+    assert features["move_is_physical"] == 1.0
+    assert features["move_type_rock"] == 1.0
+    assert features["move_when_opp_low_hp"] == 1.0
+
+
+def test_showdown_backend_legal_actions_include_move_metadata_when_available():
+    import pytest
+
+    from battle_engine.backends import ShowdownBattleBackend
+
+    backend = ShowdownBattleBackend()
+    check = backend.check_available()
+    if not check.get("available"):
+        pytest.skip(f"Showdown backend unavailable: {check.get('reason')}")
+
+    backend.reset([TYRANITAR_CB], [DRAGONITE_DD], seed=402)
+    moves = [action for action in backend.legal_actions(1) if action.kind == "move"]
+    stone_edge = next(action for action in moves if action.index == 1)
+
+    assert stone_edge.metadata["id"] == "stoneedge"
+    assert stone_edge.metadata["type"] == "Rock"
+    assert stone_edge.metadata["category"] == "physical"
+    assert stone_edge.metadata["base_power"] == 100
+    assert stone_edge.metadata["accuracy"] == 80

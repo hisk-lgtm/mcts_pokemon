@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Literal
+from typing import Any, Dict, List, Optional, Literal
 import copy
 
 Status = Optional[Literal["brn", "psn", "tox", "par", "slp", "frz"]]
@@ -125,6 +125,7 @@ class FieldState:
 class Action:
     kind: Literal["move", "switch"]
     index: int
+    metadata: Dict[str, Any] = field(default_factory=dict, compare=False, hash=False)
 
 
 @dataclass

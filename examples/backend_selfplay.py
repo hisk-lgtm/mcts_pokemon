@@ -27,7 +27,10 @@ class GameTeams:
 
 
 def action_to_payload(action: Action) -> dict[str, Any]:
-    return {"kind": action.kind, "index": action.index}
+    payload: dict[str, Any] = {"kind": action.kind, "index": action.index}
+    if action.metadata:
+        payload.update(action.metadata)
+    return payload
 
 
 def mcts_result_to_payload(result: MCTSResult) -> dict[str, Any]:

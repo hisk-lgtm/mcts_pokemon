@@ -4,7 +4,7 @@ from typing import Any
 
 from .model import Action
 
-FEATURE_SCHEMA_VERSION = 1
+FEATURE_SCHEMA_VERSION = 2
 TEAM_SIZE = 6
 
 _STATUS_KEYS = {
@@ -34,6 +34,27 @@ _WEATHER_ALIASES = {
     "hail": "hail_or_snow",
     "snow": "hail_or_snow",
 }
+
+_MOVE_TYPES = (
+    "normal",
+    "fire",
+    "water",
+    "electric",
+    "grass",
+    "ice",
+    "fighting",
+    "poison",
+    "ground",
+    "flying",
+    "psychic",
+    "bug",
+    "rock",
+    "ghost",
+    "dragon",
+    "dark",
+    "steel",
+)
+
 
 _TERRAIN_ALIASES = {
     "electricterrain": "electric",
@@ -96,8 +117,20 @@ ACTION_FEATURE_NAMES = STATE_FEATURE_NAMES + (
     "action_index_3",
     "action_index_4",
     "action_index_5",
+    "move_base_power",
+    "move_accuracy",
+    "move_priority",
+    "move_has_power",
+    "move_is_physical",
+    "move_is_special",
+    "move_is_status",
+    "move_contact",
+    "move_type_known",
+    *tuple(f"move_type_{move_type}" for move_type in _MOVE_TYPES),
     "move_when_opp_low_hp",
     "move_when_own_low_hp",
+    "switch_target_hp",
+    "switch_target_statused",
     "switch_when_own_low_hp",
     "switch_when_opp_low_hp",
     "switch_with_own_hazards",
@@ -327,17 +360,60 @@ def backend_state_features(summary: dict[str, Any], player: int) -> dict[str, fl
     return {name: float(values[name]) for name in STATE_FEATURE_NAMES}
 
 
+def _action_metadata(action: Action | dict[str, Any]) -> dict[str, Any]:
+    if isinstance(action, Action):
+        return dict(action.metadata)
+    if isinstance(action, dict):
+        return {key: value for key, value in action.items() if key not in {"kind", "index"}}
+    return {}
+
+
 def action_from_payload(action: Action | dict[str, Any]) -> Action:
     if isinstance(action, Action):
         return action
     if not isinstance(action, dict):
         raise TypeError(f"action must be Action or dict, got {type(action).__name__}")
-    return Action(str(action.get("kind")), int(action.get("index", 0)))
+    return Action(str(action.get("kind")), int(action.get("index", 0)), _action_metadata(action))
+
+
+def _scaled_base_power(value: Any) -> float:
+    # 150 is a practical cap for ordinary attacks; fixed/variable-power moves
+    # above that will still fit in a compact range.
+    return max(0.0, min(1.5, _number(value) / 100.0))
+
+
+def _scaled_accuracy(value: Any) -> float:
+    if value is True:
+        return 1.0
+    if value in {None, ""}:
+        return 0.0
+    return max(0.0, min(1.0, _number(value, 100.0) / 100.0))
+
+
+def _scaled_priority(value: Any) -> float:
+    # Most priority values are between -7 and +5. Keep the representation small
+    # while preserving sign.
+    return max(-1.0, min(1.0, _number(value) / 7.0))
+
+
+def _category_features(category: Any) -> dict[str, float]:
+    text = _normalize_text(category)
+    return {
+        "physical": 1.0 if text == "physical" else 0.0,
+        "special": 1.0 if text == "special" else 0.0,
+        "status": 1.0 if text == "status" else 0.0,
+    }
+
+
+def _move_type_features(move_type: Any) -> dict[str, float]:
+    normalized = _normalize_text(move_type)
+    return {move_type: 1.0 if normalized == move_type else 0.0 for move_type in _MOVE_TYPES}
 
 
 def backend_action_features(summary: dict[str, Any], player: int, action: Action | dict[str, Any]) -> dict[str, float]:
     """Return backend-neutral policy features for one legal action."""
     parsed = action_from_payload(action)
+    metadata = _action_metadata(action)
     features = backend_state_features(summary, player)
 
     action_index = max(0, int(parsed.index))
@@ -345,18 +421,38 @@ def backend_action_features(summary: dict[str, Any], player: int, action: Action
     opp_hp = features["opp_active_hp"]
     own_hazards_any = features["own_hazards_any"]
     own_status_any = features["own_status_any"]
+    category = _category_features(metadata.get("category"))
+    move_type = _move_type_features(metadata.get("type"))
+    base_power = _scaled_base_power(metadata.get("base_power", metadata.get("power")))
+    switch_target_hp = metadata.get("hp_fraction")
+    if switch_target_hp is None:
+        switch_target_hp = _safe_fraction(metadata.get("hp"), metadata.get("max_hp"))
+    target_status = _status_features(metadata.get("status"))
 
     values = {
         "action_is_move": 1.0 if parsed.kind == "move" else 0.0,
         "action_is_switch": 1.0 if parsed.kind == "switch" else 0.0,
         "action_index_norm": min(action_index, 5) / 5,
+        "move_base_power": base_power if parsed.kind == "move" else 0.0,
+        "move_accuracy": _scaled_accuracy(metadata.get("accuracy")) if parsed.kind == "move" else 0.0,
+        "move_priority": _scaled_priority(metadata.get("priority")) if parsed.kind == "move" else 0.0,
+        "move_has_power": 1.0 if parsed.kind == "move" and base_power > 0 else 0.0,
+        "move_is_physical": category["physical"] if parsed.kind == "move" else 0.0,
+        "move_is_special": category["special"] if parsed.kind == "move" else 0.0,
+        "move_is_status": category["status"] if parsed.kind == "move" else 0.0,
+        "move_contact": _flag(metadata.get("contact")) if parsed.kind == "move" else 0.0,
+        "move_type_known": 1.0 if parsed.kind == "move" and any(move_type.values()) else 0.0,
         "move_when_opp_low_hp": 1.0 if parsed.kind == "move" and opp_hp <= 0.25 else 0.0,
         "move_when_own_low_hp": 1.0 if parsed.kind == "move" and own_hp <= 0.25 else 0.0,
+        "switch_target_hp": max(0.0, min(1.0, _number(switch_target_hp))) if parsed.kind == "switch" else 0.0,
+        "switch_target_statused": target_status["any"] if parsed.kind == "switch" else 0.0,
         "switch_when_own_low_hp": 1.0 if parsed.kind == "switch" and own_hp <= 0.25 else 0.0,
         "switch_when_opp_low_hp": 1.0 if parsed.kind == "switch" and opp_hp <= 0.25 else 0.0,
         "switch_with_own_hazards": 1.0 if parsed.kind == "switch" and own_hazards_any else 0.0,
         "switch_when_own_statused": 1.0 if parsed.kind == "switch" and own_status_any else 0.0,
     }
+    for move_type_name, value in move_type.items():
+        values[f"move_type_{move_type_name}"] = value if parsed.kind == "move" else 0.0
     for index in range(6):
         values[f"action_index_{index}"] = 1.0 if action_index == index else 0.0
 
@@ -366,6 +462,15 @@ def backend_action_features(summary: dict[str, Any], player: int, action: Action
 
 def backend_action_label(action: Action | dict[str, Any]) -> str:
     parsed = action_from_payload(action)
+    metadata = _action_metadata(action)
+    if parsed.kind == "move":
+        move_name = metadata.get("id") or metadata.get("name") or metadata.get("move")
+        if move_name:
+            return f"move:{move_name}"
+    if parsed.kind == "switch":
+        species = metadata.get("species")
+        if species:
+            return f"switch:{species}"
     return f"{parsed.kind}:{parsed.index}"
 
 

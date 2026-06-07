@@ -19,7 +19,24 @@ def _safe_float(value: object, default: float = 0.0) -> float:
         return default
 
 
+def _action_payload(action: Action) -> dict:
+    payload = {"kind": action.kind, "index": action.index}
+    if action.metadata:
+        payload.update(action.metadata)
+    return payload
+
+
 def _backend_action_label(summary: dict, player: int, action: Action) -> str:
+    metadata = getattr(action, "metadata", {}) or {}
+    if action.kind == "move":
+        move_name = metadata.get("name") or metadata.get("move") or metadata.get("id")
+        if move_name:
+            return f"move:{move_name}"
+    elif action.kind == "switch":
+        species = metadata.get("species")
+        if species:
+            return f"switch:{species}"
+
     side = summary.get(f"p{player}", {})
     mons = side.get("mons") if isinstance(side, dict) else None
 
@@ -100,7 +117,7 @@ class MCTSResult:
 
     def as_log_dict(self) -> dict:
         return {
-            "chosen": {"kind": self.action.kind, "index": self.action.index},
+            "chosen": _action_payload(self.action),
             "simulations": self.simulations,
             "stats": [
                 {
