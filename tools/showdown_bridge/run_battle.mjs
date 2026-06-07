@@ -169,7 +169,41 @@ function battleWinner(battle) {
   return battle.winner;
 }
 
-function legalActionsFromRequest(side) {
+function parseCondition(condition) {
+  if (typeof condition !== 'string') return {hp: null, max_hp: null, status: null, fainted: false};
+  if (condition === '0 fnt' || condition.startsWith('0 ')) {
+    return {hp: 0, max_hp: null, status: null, fainted: true};
+  }
+  const [hpPart, status] = condition.split(' ');
+  const [hpRaw, maxHpRaw] = hpPart.split('/');
+  const hp = Number(hpRaw);
+  const maxHp = Number(maxHpRaw);
+  return {
+    hp: Number.isFinite(hp) ? hp : null,
+    max_hp: Number.isFinite(maxHp) ? maxHp : null,
+    status: status || null,
+    fainted: false,
+  };
+}
+
+function moveMetadata(move, battle) {
+  const dexMove = battle?.dex?.moves?.get(move.id || move.move) || {};
+  const accuracy = dexMove.accuracy === true ? 100 : Number(dexMove.accuracy ?? move.accuracy ?? 100);
+  return {
+    id: move.id || dexMove.id || '',
+    name: move.move || dexMove.name || move.id || '',
+    type: dexMove.type || move.type || '',
+    category: dexMove.category ? String(dexMove.category).toLowerCase() : '',
+    base_power: Number(dexMove.basePower ?? move.basePower ?? 0),
+    accuracy: Number.isFinite(accuracy) ? accuracy : 100,
+    priority: Number(dexMove.priority ?? 0),
+    target: dexMove.target || move.target || '',
+    pp: Number(move.pp ?? 0),
+    maxpp: Number(move.maxpp ?? 0),
+  };
+}
+
+function legalActionsFromRequest(side, battle) {
   const request = side.activeRequest;
   if (!request) return [];
 
@@ -177,7 +211,7 @@ function legalActionsFromRequest(side) {
   const active = request.active?.[0];
   if (active?.moves) {
     active.moves.forEach((move, index) => {
-      if (!move.disabled) actions.push({kind: 'move', index, move: move.move, id: move.id});
+      if (!move.disabled) actions.push({kind: 'move', index, ...moveMetadata(move, battle)});
     });
   }
 
@@ -186,8 +220,19 @@ function legalActionsFromRequest(side) {
   if (canSwitch && request.side?.pokemon) {
     request.side.pokemon.forEach((mon, index) => {
       const isActive = !!mon.active;
-      const fainted = typeof mon.condition === 'string' && mon.condition.startsWith('0 ');
-      if (!isActive && !fainted) actions.push({kind: 'switch', index, species: mon.details.split(',')[0]});
+      const parsed = parseCondition(mon.condition);
+      if (!isActive && !parsed.fainted) {
+        const species = mon.details.split(',')[0];
+        actions.push({
+          kind: 'switch',
+          index,
+          species,
+          hp: parsed.hp,
+          max_hp: parsed.max_hp,
+          hp_fraction: parsed.max_hp ? parsed.hp / parsed.max_hp : null,
+          status: parsed.status,
+        });
+      }
     });
   }
 
@@ -270,8 +315,8 @@ function runBattle(payload) {
       p2: battle.sides[1].activeRequest || null,
     },
     legal_actions: {
-      p1: legalActionsFromRequest(battle.sides[0]),
-      p2: legalActionsFromRequest(battle.sides[1]),
+      p1: legalActionsFromRequest(battle.sides[0], battle),
+      p2: legalActionsFromRequest(battle.sides[1], battle),
     },
     needs_replacement: {
       p1: !!battle.sides[0].activeRequest?.forceSwitch?.[0],
