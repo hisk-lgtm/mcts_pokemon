@@ -1805,3 +1805,518 @@ def test_pokemmo_rulesets_uses_showdown_format_data_table():
     assert "ModdedFormatData" not in rulesets
     assert "\tsteel: {" in typechart
     assert "\tNormal: {" not in typechart
+
+
+def test_compare_backends_compact_summary_normalizes_python_and_showdown_shapes():
+    from examples.compare_backends import compact_summary, diff_compact_summaries
+
+    python_raw = {
+        "turn": 2,
+        "winner": None,
+        "weather": "sandstorm",
+        "p1": {"active": "Tyranitar", "hp": 150, "max_hp": 200, "status": None, "alive": 1, "hazards": {}},
+        "p2": {"active": "Dragonite", "hp": 100, "max_hp": 200, "status": "brn", "alive": 1, "hazards": {}},
+    }
+    showdown_raw = {
+        "turn": 2,
+        "winner": None,
+        "weather": "sandstorm",
+        "p1": {
+            "active": "Tyranitar",
+            "active_index": 0,
+            "alive_count": 1,
+            "side_conditions": {},
+            "mons": [{"species": "Tyranitar", "hp": 150, "max_hp": 200, "status": None, "active": True}],
+        },
+        "p2": {
+            "active": "Dragonite",
+            "active_index": 0,
+            "alive_count": 1,
+            "side_conditions": {},
+            "mons": [{"species": "Dragonite", "hp": 100, "max_hp": 200, "status": "brn", "active": True}],
+        },
+    }
+
+    python_summary = compact_summary(python_raw)
+    showdown_summary = compact_summary(showdown_raw)
+
+    assert python_summary["p1"]["hp_fraction"] == 0.75
+    assert showdown_summary["p2"]["hp_fraction"] == 0.5
+    assert diff_compact_summaries(python_summary, showdown_summary) == []
+
+
+def test_compare_backends_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/compare_backends.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "Compare Python and Showdown backend summaries" in result.stdout
+
+
+def test_backend_selfplay_script_writes_python_jsonl(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    out = tmp_path / "selfplay.jsonl"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/backend_selfplay.py"),
+            "--backend",
+            "python",
+            "--teams",
+            "single",
+            "--games",
+            "1",
+            "--turns",
+            "1",
+            "--sims",
+            "1",
+            "--depth",
+            "0",
+            "--seed",
+            "1",
+            "--out",
+            str(out),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 2
+
+    first = json.loads(lines[0])
+    second = json.loads(lines[1])
+    assert first["schema_version"] == 1
+    assert first["record_type"] == "decision"
+    assert first["backend"] == "python"
+    assert first["player"] == 1
+    assert second["player"] == 2
+    assert first["state_summary"]["p1"]["active"] == "Tyranitar"
+    assert first["legal_actions"]
+    assert first["chosen_action"] in first["legal_actions"]
+    assert first["mcts"]["simulations"] == 1
+    assert first["final_winner"] in {None, 0, 1, 2}
+    assert first["value_target"] in {-1.0, 0.0, 1.0}
+
+
+def test_backend_selfplay_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/backend_selfplay.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "Run backend self-play" in result.stdout
+
+
+def test_backend_state_features_support_python_summary_shape():
+    from battle_engine.backend_features import backend_action_features, backend_state_features
+    from battle_engine.model import Action
+
+    summary = {
+        "turn": 2,
+        "winner": None,
+        "weather": "sand",
+        "terrain": None,
+        "p1": {
+            "active": "Tyranitar",
+            "hp": 88,
+            "max_hp": 176,
+            "status": "brn",
+            "alive": 3,
+            "hazards": {"sr": True, "spikes": 2, "toxic_spikes": 1},
+            "needs_replacement": False,
+        },
+        "p2": {
+            "active": "Dragonite",
+            "hp": 167,
+            "max_hp": 167,
+            "status": None,
+            "alive": 2,
+            "hazards": {"sr": False, "spikes": 0, "toxic_spikes": 0},
+            "needs_replacement": True,
+        },
+    }
+
+    state = backend_state_features(summary, 1)
+    action = backend_action_features(summary, 1, Action("switch", 2))
+
+    assert state["bias"] == 1.0
+    assert state["own_active_hp"] == 0.5
+    assert state["opp_active_hp"] == 1.0
+    assert state["weather_sandstorm"] == 1.0
+    assert state["own_hazards_any"] == 1.0
+    assert state["own_spikes"] == 2 / 3
+    assert state["own_toxic_spikes"] == 0.5
+    assert state["own_status_burn"] == 1.0
+    assert state["opp_needs_replacement"] == 1.0
+    assert action["action_is_switch"] == 1.0
+    assert action["action_index_2"] == 1.0
+    assert action["switch_with_own_hazards"] == 1.0
+
+
+def test_backend_state_features_support_showdown_summary_shape():
+    from battle_engine.backend_features import backend_action_features, backend_state_features
+
+    summary = {
+        "turn": 2,
+        "winner": None,
+        "weather": "sandstorm",
+        "terrain": "electricterrain",
+        "p1": {
+            "active": "Tyranitar",
+            "active_index": 0,
+            "alive_count": 1,
+            "needs_replacement": False,
+            "side_conditions": {"Stealth Rock": 1},
+            "mons": [
+                {"species": "Tyranitar", "hp": 176, "max_hp": 176, "status": None, "active": True}
+            ],
+        },
+        "p2": {
+            "active": "Dragonite",
+            "active_index": 0,
+            "alive_count": 1,
+            "needs_replacement": False,
+            "side_conditions": {},
+            "mons": [
+                {"species": "Dragonite", "hp": 94, "max_hp": 167, "status": "par", "active": True}
+            ],
+        },
+    }
+
+    state = backend_state_features(summary, 1)
+    action = backend_action_features(summary, 1, {"kind": "move", "index": 0})
+
+    assert state["own_active_hp"] == 1.0
+    assert round(state["opp_active_hp"], 4) == round(94 / 167, 4)
+    assert state["weather_sandstorm"] == 1.0
+    assert state["terrain_any"] == 1.0
+    assert state["own_stealth_rock"] == 1.0
+    assert state["opp_status_paralysis"] == 1.0
+    assert action["action_is_move"] == 1.0
+    assert action["action_index_0"] == 1.0
+
+
+def test_backend_record_features_from_selfplay_record():
+    from battle_engine.backend_features import ACTION_FEATURE_NAMES, STATE_FEATURE_NAMES, backend_record_features
+
+    record = {
+        "record_type": "decision",
+        "player": 2,
+        "chosen_action": {"kind": "move", "index": 0},
+        "state_summary": {
+            "weather": None,
+            "p1": {"active": "A", "hp": 10, "max_hp": 100, "status": None, "alive": 1, "hazards": {}},
+            "p2": {"active": "B", "hp": 90, "max_hp": 100, "status": None, "alive": 1, "hazards": {}},
+        },
+    }
+
+    features = backend_record_features(record)
+    assert tuple(features["state"].keys()) == STATE_FEATURE_NAMES
+    assert tuple(features["action"].keys()) == ACTION_FEATURE_NAMES
+    assert features["state"]["own_active_hp"] == 0.9
+    assert features["state"]["opp_active_hp"] == 0.1
+    assert features["action"]["move_when_opp_low_hp"] == 1.0
+
+
+def test_inspect_backend_features_script_reads_jsonl(tmp_path):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    out = tmp_path / "selfplay.jsonl"
+    out.write_text(
+        '{"record_type":"decision","backend":"python","game_id":0,"turn_index":1,"player":1,'
+        '"chosen_action":{"kind":"move","index":0},"value_target":1.0,'
+        '"state_summary":{"weather":"sand","p1":{"active":"Tyranitar","hp":176,"max_hp":176,'
+        '"status":null,"alive":1,"hazards":{}},"p2":{"active":"Dragonite","hp":94,'
+        '"max_hp":167,"status":null,"alive":1,"hazards":{}}}}\n',
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/inspect_backend_features.py"), str(out), "--limit", "1", "--top", "5"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "Record 1" in result.stdout
+    assert "own_active_hp=1" in result.stdout
+    assert "action_is_move=1" in result.stdout
+
+
+def test_inspect_backend_features_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/inspect_backend_features.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "Inspect backend self-play JSONL records" in result.stdout
+
+
+def _backend_training_record(*, chosen_index: int = 0, player: int = 1, value_target: float = 1.0) -> dict:
+    return {
+        "record_type": "decision",
+        "backend": "python",
+        "game_id": 0,
+        "turn_index": 1,
+        "player": player,
+        "legal_actions": [
+            {"kind": "move", "index": 0},
+            {"kind": "move", "index": 1},
+            {"kind": "switch", "index": 2},
+        ],
+        "chosen_action": {"kind": "move", "index": chosen_index},
+        "value_target": value_target,
+        "state_summary": {
+            "weather": "sand",
+            "terrain": None,
+            "p1": {
+                "active": "Tyranitar",
+                "hp": 176,
+                "max_hp": 176,
+                "status": None,
+                "alive": 1,
+                "hazards": {},
+            },
+            "p2": {
+                "active": "Dragonite",
+                "hp": 94,
+                "max_hp": 167,
+                "status": None,
+                "alive": 1,
+                "hazards": {},
+            },
+        },
+    }
+
+
+def test_backend_linear_agent_updates_from_record_and_round_trips(tmp_path):
+    from battle_engine.backend_agent import BackendLinearPolicyValueAgent
+    from battle_engine.backend_features import action_from_payload
+
+    record = _backend_training_record(chosen_index=1, value_target=1.0)
+    agent = BackendLinearPolicyValueAgent(learning_rate=0.1)
+
+    before = agent.action_priors(record["state_summary"], 1, [action_from_payload(a) for a in record["legal_actions"]])
+    metrics = agent.update_from_record(record)
+    after = agent.action_priors(record["state_summary"], 1, [action_from_payload(a) for a in record["legal_actions"]])
+
+    chosen = action_from_payload(record["chosen_action"])
+    assert metrics["action_label"] == "move:1"
+    assert metrics["policy_loss"] is not None
+    assert metrics["value_loss"] is not None
+    assert after[chosen] > before[chosen]
+    assert agent.evaluate(record["state_summary"], 1) > 0
+    assert agent.policy_weights
+    assert agent.value_weights
+
+    model_path = tmp_path / "backend_agent.json"
+    agent.save(model_path)
+    loaded = BackendLinearPolicyValueAgent.load(model_path)
+    assert loaded.to_dict() == agent.to_dict()
+
+
+def test_train_backend_agent_script_trains_from_jsonl(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    data_path = tmp_path / "records.jsonl"
+    model_path = tmp_path / "backend_agent.json"
+    metrics_path = tmp_path / "metrics.json"
+
+    records = [
+        _backend_training_record(chosen_index=0, player=1, value_target=1.0),
+        _backend_training_record(chosen_index=1, player=2, value_target=-1.0),
+    ]
+    data_path.write_text("".join(json.dumps(record) + "\n" for record in records), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/train_backend_agent.py"),
+            str(data_path),
+            "--out",
+            str(model_path),
+            "--metrics-out",
+            str(metrics_path),
+            "--epochs",
+            "2",
+            "--learning-rate",
+            "0.1",
+            "--no-shuffle",
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "Trained backend agent" in result.stdout
+
+    model = json.loads(model_path.read_text(encoding="utf-8"))
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    assert model["model_type"] == "BackendLinearPolicyValueAgent"
+    assert model["policy_weights"]
+    assert model["value_weights"]
+    assert metrics["records"] == 2
+    assert metrics["updates"] == 4
+
+
+def test_train_backend_agent_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/train_backend_agent.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "Train a lightweight backend policy/value agent" in result.stdout
+
+
+def test_evaluate_backend_agent_summarizes_results():
+    from examples.evaluate_backend_agent import summarize_results
+
+    results = [
+        {"winner": 1, "agent_won": True, "opponent_won": False, "unresolved": False, "turns_played": 2},
+        {"winner": 2, "agent_won": False, "opponent_won": True, "unresolved": False, "turns_played": 4},
+        {"winner": None, "agent_won": False, "opponent_won": False, "unresolved": True, "turns_played": 6},
+    ]
+
+    summary = summarize_results(results)
+    assert summary["games"] == 3
+    assert summary["agent_wins"] == 1
+    assert summary["opponent_wins"] == 1
+    assert summary["unresolved"] == 1
+    assert summary["agent_win_rate"] == 1 / 3
+    assert summary["average_turns"] == 4
+
+
+def test_evaluate_backend_agent_script_runs_python_backend(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from battle_engine.backend_agent import BackendLinearPolicyValueAgent
+
+    root = Path(__file__).resolve().parents[1]
+    model_path = tmp_path / "backend_agent.json"
+    report_path = tmp_path / "evaluation.json"
+    agent = BackendLinearPolicyValueAgent(
+        policy_weights={"action_is_move": 1.0, "action_index_1": 2.0},
+        value_weights={"bias": 0.25},
+        name="test-eval-agent",
+    )
+    agent.save(model_path)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/evaluate_backend_agent.py"),
+            "--agent",
+            str(model_path),
+            "--backend",
+            "python",
+            "--teams",
+            "single",
+            "--games",
+            "1",
+            "--turns",
+            "2",
+            "--opponent",
+            "first",
+            "--out",
+            str(report_path),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "Backend agent evaluation" in result.stdout
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["summary"]["games"] == 1
+    assert report["summary"]["backend"] == "python"
+    assert len(report["games"]) == 1
+    assert report["games"][0]["team1_species"] == ["Tyranitar"]
+
+
+def test_evaluate_backend_agent_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/evaluate_backend_agent.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "Evaluate a saved backend policy/value agent" in result.stdout

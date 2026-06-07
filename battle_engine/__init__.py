@@ -11,3 +11,5 @@ from .engine import legal_actions, needs_replacement, replace_fainted, step, eva
 
 from .mcts import MCTSAgent, MCTSConfig, MCTSResult
 from .ml_agent import LinearPolicyValueAgent
+
+from .backend_agent import BackendLinearPolicyValueAgent

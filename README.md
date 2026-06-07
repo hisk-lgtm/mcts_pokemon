@@ -529,3 +529,47 @@ export const Rulesets: import('../../../sim/dex-formats').FormatDataTable = {
 ```
 
 not with a bare `ModdedFormatData` name.
+
+## Backend self-play records
+
+The first backend-neutral training artifact is a JSONL self-play recorder. It runs MCTS through a `BattleBackend`, records both players' root decisions, and attaches final winner/value labels after each game.
+
+Fast Python backend smoke run:
+
+```bash
+python examples/backend_selfplay.py --backend python --teams single --games 1 --turns 2 --sims 2 --depth 1 --out data/backend_selfplay.jsonl
+```
+
+Local Showdown backend smoke run:
+
+```bash
+python examples/backend_selfplay.py --backend showdown --showdown-root /path/to/pokemon-showdown --teams single --games 1 --turns 1 --sims 1 --depth 0 --out data/showdown_selfplay.jsonl
+```
+
+Use low `--sims`, `--depth`, and `--turns` for Showdown until the bridge moves from stateless replay calls to a persistent worker.
+
+Inspect the recorded backend feature vectors:
+
+```bash
+python examples/inspect_backend_features.py data/backend_selfplay.jsonl --limit 3 --top 20
+```
+
+Train the first backend-neutral linear policy/value agent from those records:
+
+```bash
+python examples/train_backend_agent.py data/backend_selfplay.jsonl --out training_logs/backend_agent.json --epochs 3 --learning-rate 0.05
+```
+
+Evaluate the saved backend agent against simple baselines:
+
+```bash
+python examples/evaluate_backend_agent.py --backend python --agent training_logs/backend_agent.json --teams single --games 20 --opponent random
+```
+
+Local Showdown evaluation should stay tiny until the bridge has a persistent worker:
+
+```bash
+python examples/evaluate_backend_agent.py --backend showdown --showdown-root /path/to/pokemon-showdown --agent training_logs/backend_agent.json --teams single --games 3 --turns 5 --opponent first
+```
+
+This trainer consumes `state_summary`, `legal_actions`, `chosen_action`, and `value_target` records. It does not replace the older Python `BattleState` training path yet. The evaluator closes the first backend-training loop: generate JSONL, train a model, load it, act through a backend, and report wins/losses/unresolved games.
