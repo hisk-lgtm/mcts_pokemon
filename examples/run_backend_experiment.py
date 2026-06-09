@@ -14,6 +14,7 @@ from typing import Any
 from battle_engine.backend_agent import BackendLinearPolicyValueAgent
 from battle_engine.backend_features import FEATURE_SCHEMA_VERSION
 from battle_engine.backends import BackendUnavailableError
+from battle_engine.backend_jsonl_validation import validate_backend_jsonl
 
 from examples.backend_selfplay import _build_teams, play_backend_game, write_jsonl
 from examples.evaluate_backend_agent import EvaluationConfig, run_evaluation
@@ -60,6 +61,7 @@ def _config_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "trace_actions": args.trace_actions,
         "explain_top": args.explain_top,
         "save_replay_logs": bool(args.save_replay_logs),
+        "strict_validation": bool(args.strict_validation),
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
     }
 
@@ -200,6 +202,7 @@ def _write_summary_text(
         f"seed: {config['seed']}",
         f"self-play: games={config['games']} turns={config['turns']} sims={config['sims']} depth={config['depth']}",
         f"records: {selfplay_summary['records']}",
+        "validation: see validation_report.json",
         f"training: epochs={config['epochs']} learning_rate={config['learning_rate']} updates={train_metrics.get('updates')}",
         f"policy_loss_avg: {float(train_metrics.get('policy_loss_avg', 0.0)):.4f}",
         f"value_loss_avg: {float(train_metrics.get('value_loss_avg', 0.0)):.4f}",
@@ -245,6 +248,13 @@ def run_experiment(args: argparse.Namespace) -> dict[str, Any]:
     selfplay_path, selfplay_summary = _run_selfplay(args, out_dir)
     _write_json(out_dir / "selfplay_summary.json", selfplay_summary)
 
+    validation_report = validate_backend_jsonl([selfplay_path], strict_metadata=args.strict_validation)
+    validation_payload = validation_report.to_dict()
+    _write_json(out_dir / "validation_report.json", validation_payload)
+    if not validation_report.valid:
+        first_error = validation_report.errors[0] if validation_report.errors else "unknown validation error"
+        raise ValueError(f"Generated self-play JSONL failed validation: {first_error}")
+
     agent, train_metrics = _train_agent(args, out_dir, selfplay_path)
     eval_reports = _run_evaluations(args, out_dir, agent)
 
@@ -256,11 +266,13 @@ def run_experiment(args: argparse.Namespace) -> dict[str, Any]:
             for key, value in train_metrics.items()
             if key not in {"top_weights"}
         },
+        "validation": validation_payload,
         "evaluation": {opponent: report["summary"] for opponent, report in eval_reports.items()},
         "artifacts": {
             "config": str(out_dir / "config.json"),
             "selfplay": str(out_dir / "selfplay.jsonl"),
             "selfplay_summary": str(out_dir / "selfplay_summary.json"),
+            "validation_report": str(out_dir / "validation_report.json"),
             "agent": str(out_dir / "agent.json"),
             "train_metrics": str(out_dir / "train_metrics.json"),
             "summary_text": str(out_dir / "summary.txt"),
@@ -319,6 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--trace-actions", type=int, default=0)
     parser.add_argument("--explain-top", type=int, default=0)
     parser.add_argument("--save-replay-logs", action="store_true", help="Save raw backend battle logs under out-dir/replays")
+    parser.add_argument("--strict-validation", action="store_true", help="Treat low self-play metadata coverage as an experiment failure")
     return parser
 
 
@@ -341,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
         run_experiment(args)
     except BackendUnavailableError as exc:
         raise SystemExit(f"Backend unavailable: {exc}") from exc
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     return 0
 
 

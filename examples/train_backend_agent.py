@@ -12,6 +12,7 @@ from typing import Iterable, Any
 
 from battle_engine.backend_agent import MODEL_SCHEMA_VERSION, BackendLinearPolicyValueAgent
 from battle_engine.backend_features import FEATURE_SCHEMA_VERSION
+from battle_engine.backend_jsonl_validation import validate_backend_jsonl
 
 
 def iter_jsonl(paths: list[Path]) -> Iterable[dict[str, Any]]:
@@ -86,12 +87,26 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-shuffle", action="store_true", help="Keep records in file order each epoch")
     parser.add_argument("--metrics-out", type=Path, help="Optional metrics JSON output path")
     parser.add_argument("--top-weights", type=int, default=12, help="Number of largest learned weights to print/store")
+    parser.add_argument("--no-validate", action="store_true", help="Skip backend JSONL validation before training")
+    parser.add_argument("--strict-validation", action="store_true", help="Treat low metadata coverage as a validation error")
+    parser.add_argument("--validation-out", type=Path, help="Optional validation report JSON output path")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    validation_payload = None
+    if not args.no_validate:
+        validation_report = validate_backend_jsonl(args.inputs, strict_metadata=args.strict_validation)
+        validation_payload = validation_report.to_dict()
+        if args.validation_out:
+            args.validation_out.parent.mkdir(parents=True, exist_ok=True)
+            args.validation_out.write_text(json.dumps(validation_payload, indent=2, sort_keys=True), encoding="utf-8")
+        if not validation_report.valid:
+            first_error = validation_report.errors[0] if validation_report.errors else "unknown validation error"
+            parser.error(f"backend JSONL validation failed: {first_error}")
 
     records = list(iter_jsonl(args.inputs))
     if args.limit and args.limit > 0:
@@ -119,6 +134,8 @@ def main(argv: list[str] | None = None) -> int:
     metrics["agent_name"] = agent.name
     metrics["learning_rate"] = agent.learning_rate
     metrics["top_weights"] = agent.top_weights(limit=max(0, args.top_weights))
+    if validation_payload is not None:
+        metrics["validation"] = validation_payload
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     agent.save(args.out)
