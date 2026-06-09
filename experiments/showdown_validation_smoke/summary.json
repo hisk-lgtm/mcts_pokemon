@@ -1,0 +1,163 @@
+{
+  "artifacts": {
+    "agent": "experiments\\showdown_validation_smoke\\agent.json",
+    "config": "experiments\\showdown_validation_smoke\\config.json",
+    "selfplay": "experiments\\showdown_validation_smoke\\selfplay.jsonl",
+    "selfplay_summary": "experiments\\showdown_validation_smoke\\selfplay_summary.json",
+    "summary_text": "experiments\\showdown_validation_smoke\\summary.txt",
+    "train_metrics": "experiments\\showdown_validation_smoke\\train_metrics.json",
+    "validation_report": "experiments\\showdown_validation_smoke\\validation_report.json"
+  },
+  "config": {
+    "agent_name": "",
+    "agent_player": 1,
+    "agent_temperature": 0.0,
+    "backend": "showdown",
+    "created_at_utc": "2026-06-09T06:35:18+00:00",
+    "depth": 0,
+    "epochs": 1,
+    "eval_games": 1,
+    "eval_mcts_depth": 4,
+    "eval_mcts_sims": 8,
+    "eval_opponents": [
+      "first",
+      "damage"
+    ],
+    "eval_turns": 1,
+    "explain_top": 0,
+    "feature_schema_version": 5,
+    "format": "gen5ou",
+    "games": 1,
+    "learning_rate": 0.05,
+    "node_bin": "node",
+    "save_replay_logs": true,
+    "seed": 1,
+    "showdown_root": null,
+    "sims": 1,
+    "strict_validation": false,
+    "teams": "single",
+    "timeout": 30,
+    "trace_actions": 0,
+    "turns": 1
+  },
+  "evaluation": {
+    "damage": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-showdown_validation_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 1.0,
+      "agent_wins": 1,
+      "average_turns": 1.0,
+      "backend": "showdown",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 1,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "damage",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 1,
+      "p2_wins": 0,
+      "replay_dir": "experiments\\showdown_validation_smoke\\replays\\eval_damage",
+      "report_path": "experiments\\showdown_validation_smoke\\eval_damage.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 1,
+      "unresolved": 0,
+      "unresolved_rate": 0.0
+    },
+    "first": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-showdown_validation_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 0.0,
+      "agent_wins": 0,
+      "average_turns": 1.0,
+      "backend": "showdown",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 1,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "first",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 0,
+      "p2_wins": 0,
+      "replay_dir": "experiments\\showdown_validation_smoke\\replays\\eval_first",
+      "report_path": "experiments\\showdown_validation_smoke\\eval_first.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 1,
+      "unresolved": 1,
+      "unresolved_rate": 1.0
+    }
+  },
+  "selfplay": {
+    "backend": "showdown",
+    "games": 1,
+    "path": "experiments\\showdown_validation_smoke\\selfplay.jsonl",
+    "records": 2,
+    "replay_dir": "experiments\\showdown_validation_smoke\\replays\\selfplay",
+    "teams": "single",
+    "winner_record_counts": {
+      "1": 2
+    }
+  },
+  "training": {
+    "agent_name": "backend-experiment-showdown_validation_smoke",
+    "epochs": 1,
+    "feature_schema_version": 5,
+    "input_files": [
+      "experiments\\showdown_validation_smoke\\selfplay.jsonl"
+    ],
+    "learning_rate": 0.05,
+    "model_schema_version": 1,
+    "output_model": "experiments\\showdown_validation_smoke\\agent.json",
+    "policy_loss_avg": 1.42582209507031,
+    "policy_loss_total": 2.85164419014062,
+    "policy_weight_count": 33,
+    "records": 2,
+    "updates": 2,
+    "value_loss_avg": 1.1061477288512533,
+    "value_loss_total": 2.2122954577025067,
+    "value_updates": 2,
+    "value_weight_count": 14
+  },
+  "validation": {
+    "action_kind_counts": {
+      "move": 8
+    },
+    "backend_counts": {
+      "showdown": 2
+    },
+    "chosen_kind_counts": {
+      "move": 2
+    },
+    "decision_records": 2,
+    "errors": [],
+    "feature_schema_version": 5,
+    "move_actions": 8,
+    "move_actions_with_metadata": 8,
+    "move_metadata_rate": 1.0,
+    "paths": [
+      "experiments\\showdown_validation_smoke\\selfplay.jsonl"
+    ],
+    "player_counts": {
+      "1": 1,
+      "2": 1
+    },
+    "records": 2,
+    "switch_actions": 0,
+    "switch_actions_with_metadata": 0,
+    "switch_metadata_rate": 0.0,
+    "valid": true,
+    "warnings": [],
+    "winner_counts": {
+      "1": 2
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "action_kind_counts": {
+    "move": 73
+  },
+  "backend_counts": {
+    "python": 22
+  },
+  "chosen_kind_counts": {
+    "move": 22
+  },
+  "decision_records": 22,
+  "errors": [],
+  "feature_schema_version": 5,
+  "move_actions": 73,
+  "move_actions_with_metadata": 73,
+  "move_metadata_rate": 1.0,
+  "paths": [
+    "experiments\\python_validation_smoke\\selfplay.jsonl"
+  ],
+  "player_counts": {
+    "1": 11,
+    "2": 11
+  },
+  "records": 22,
+  "switch_actions": 0,
+  "switch_actions_with_metadata": 0,
+  "switch_metadata_rate": 0.0,
+  "valid": true,
+  "warnings": [],
+  "winner_counts": {
+    "1": 12,
+    "2": 10
+  }
+}

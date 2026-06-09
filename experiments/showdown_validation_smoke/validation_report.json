@@ -1,0 +1,33 @@
+{
+  "action_kind_counts": {
+    "move": 8
+  },
+  "backend_counts": {
+    "showdown": 2
+  },
+  "chosen_kind_counts": {
+    "move": 2
+  },
+  "decision_records": 2,
+  "errors": [],
+  "feature_schema_version": 5,
+  "move_actions": 8,
+  "move_actions_with_metadata": 8,
+  "move_metadata_rate": 1.0,
+  "paths": [
+    "experiments\\showdown_validation_smoke\\selfplay.jsonl"
+  ],
+  "player_counts": {
+    "1": 1,
+    "2": 1
+  },
+  "records": 2,
+  "switch_actions": 0,
+  "switch_actions_with_metadata": 0,
+  "switch_metadata_rate": 0.0,
+  "valid": true,
+  "warnings": [],
+  "winner_counts": {
+    "1": 2
+  }
+}

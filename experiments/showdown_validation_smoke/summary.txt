@@ -1,0 +1,26 @@
+Backend experiment summary
+==========================
+
+backend: showdown
+teams: single
+seed: 1
+self-play: games=1 turns=1 sims=1 depth=0
+records: 2
+validation: see validation_report.json
+training: epochs=1 learning_rate=0.05 updates=2
+policy_loss_avg: 1.4258
+value_loss_avg: 1.1061
+
+Evaluation
+----------
+first: agent_wins=0 opponent_wins=0 unresolved=1 agent_win_rate=0.0% avg_turns=1.00
+damage: agent_wins=1 opponent_wins=0 unresolved=0 agent_win_rate=100.0% avg_turns=1.00
+
+Artifacts
+---------
+config.json
+selfplay.jsonl
+agent.json
+train_metrics.json
+eval_<opponent>.json
+replays/

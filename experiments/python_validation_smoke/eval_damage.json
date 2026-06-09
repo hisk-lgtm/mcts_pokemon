@@ -1,0 +1,526 @@
+{
+  "games": [
+    {
+      "action_trace": [],
+      "agent_player": 1,
+      "agent_won": true,
+      "backend": "python",
+      "final_summary": {
+        "p1": {
+          "ability": "Sand Stream",
+          "active": "Tyranitar",
+          "alive": 1,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 17,
+          "item": "Choice Band",
+          "level": 50,
+          "max_hp": 176,
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "hp": 176,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        },
+        "p2": {
+          "ability": "Multiscale",
+          "active": "Dragonite",
+          "alive": 0,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 0,
+          "item": "Lum Berry",
+          "level": 50,
+          "max_hp": 167,
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "hp": 167,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        },
+        "trick_room_turns": 0,
+        "turn": 3,
+        "weather": "sand",
+        "winner": 1
+      },
+      "game_id": 0,
+      "opponent": "damage",
+      "opponent_won": false,
+      "replacements": 0,
+      "replay_files": {},
+      "seed": 10001,
+      "team1_species": [
+        "Tyranitar"
+      ],
+      "team2_species": [
+        "Dragonite"
+      ],
+      "turns_played": 2,
+      "unresolved": false,
+      "winner": 1
+    },
+    {
+      "action_trace": [],
+      "agent_player": 1,
+      "agent_won": true,
+      "backend": "python",
+      "final_summary": {
+        "p1": {
+          "ability": "Sand Stream",
+          "active": "Tyranitar",
+          "alive": 1,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 24,
+          "item": "Choice Band",
+          "level": 50,
+          "max_hp": 176,
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "hp": 176,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        },
+        "p2": {
+          "ability": "Multiscale",
+          "active": "Dragonite",
+          "alive": 0,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 0,
+          "item": "Lum Berry",
+          "level": 50,
+          "max_hp": 167,
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "hp": 167,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        },
+        "trick_room_turns": 0,
+        "turn": 3,
+        "weather": "sand",
+        "winner": 1
+      },
+      "game_id": 1,
+      "opponent": "damage",
+      "opponent_won": false,
+      "replacements": 0,
+      "replay_files": {},
+      "seed": 10002,
+      "team1_species": [
+        "Tyranitar"
+      ],
+      "team2_species": [
+        "Dragonite"
+      ],
+      "turns_played": 2,
+      "unresolved": false,
+      "winner": 1
+    },
+    {
+      "action_trace": [],
+      "agent_player": 1,
+      "agent_won": true,
+      "backend": "python",
+      "final_summary": {
+        "p1": {
+          "ability": "Sand Stream",
+          "active": "Tyranitar",
+          "alive": 1,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 18,
+          "item": "Choice Band",
+          "level": 50,
+          "max_hp": 176,
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "hp": 176,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        },
+        "p2": {
+          "ability": "Multiscale",
+          "active": "Dragonite",
+          "alive": 0,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 0,
+          "item": "Lum Berry",
+          "level": 50,
+          "max_hp": 167,
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "hp": 167,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        },
+        "trick_room_turns": 0,
+        "turn": 3,
+        "weather": "sand",
+        "winner": 1
+      },
+      "game_id": 2,
+      "opponent": "damage",
+      "opponent_won": false,
+      "replacements": 0,
+      "replay_files": {},
+      "seed": 10003,
+      "team1_species": [
+        "Tyranitar"
+      ],
+      "team2_species": [
+        "Dragonite"
+      ],
+      "turns_played": 2,
+      "unresolved": false,
+      "winner": 1
+    },
+    {
+      "action_trace": [],
+      "agent_player": 1,
+      "agent_won": true,
+      "backend": "python",
+      "final_summary": {
+        "p1": {
+          "ability": "Sand Stream",
+          "active": "Tyranitar",
+          "alive": 1,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 30,
+          "item": "Choice Band",
+          "level": 50,
+          "max_hp": 176,
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "hp": 176,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        },
+        "p2": {
+          "ability": "Multiscale",
+          "active": "Dragonite",
+          "alive": 0,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 0,
+          "item": "Lum Berry",
+          "level": 50,
+          "max_hp": 167,
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "hp": 167,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        },
+        "trick_room_turns": 0,
+        "turn": 3,
+        "weather": "sand",
+        "winner": 1
+      },
+      "game_id": 3,
+      "opponent": "damage",
+      "opponent_won": false,
+      "replacements": 0,
+      "replay_files": {},
+      "seed": 10004,
+      "team1_species": [
+        "Tyranitar"
+      ],
+      "team2_species": [
+        "Dragonite"
+      ],
+      "turns_played": 2,
+      "unresolved": false,
+      "winner": 1
+    },
+    {
+      "action_trace": [],
+      "agent_player": 1,
+      "agent_won": true,
+      "backend": "python",
+      "final_summary": {
+        "p1": {
+          "ability": "Sand Stream",
+          "active": "Tyranitar",
+          "alive": 1,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 18,
+          "item": "Choice Band",
+          "level": 50,
+          "max_hp": 176,
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "hp": 176,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        },
+        "p2": {
+          "ability": "Multiscale",
+          "active": "Dragonite",
+          "alive": 0,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "hazards": {
+            "spikes": 0,
+            "sr": false,
+            "toxic_spikes": 0
+          },
+          "hp": 0,
+          "item": "Lum Berry",
+          "level": 50,
+          "max_hp": 167,
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "hp": 167,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        },
+        "trick_room_turns": 0,
+        "turn": 3,
+        "weather": "sand",
+        "winner": 1
+      },
+      "game_id": 4,
+      "opponent": "damage",
+      "opponent_won": false,
+      "replacements": 0,
+      "replay_files": {},
+      "seed": 10005,
+      "team1_species": [
+        "Tyranitar"
+      ],
+      "team2_species": [
+        "Dragonite"
+      ],
+      "turns_played": 2,
+      "unresolved": false,
+      "winner": 1
+    }
+  ],
+  "summary": {
+    "agent_feature_schema_version": 5,
+    "agent_name": "backend-experiment-python_validation_smoke",
+    "agent_player": 1,
+    "agent_win_rate": 1.0,
+    "agent_wins": 5,
+    "average_turns": 2.0,
+    "backend": "python",
+    "explain_top": 0,
+    "feature_schema_version": 5,
+    "games": 5,
+    "mcts_depth": 4,
+    "mcts_sims": 8,
+    "opponent": "damage",
+    "opponent_win_rate": 0.0,
+    "opponent_wins": 0,
+    "p1_wins": 5,
+    "p2_wins": 0,
+    "replay_dir": null,
+    "report_path": "experiments\\python_validation_smoke\\eval_damage.json",
+    "seed": 10001,
+    "teams": "single",
+    "trace_actions": 0,
+    "turn_limit": 20,
+    "unresolved": 0,
+    "unresolved_rate": 0.0
+  }
+}

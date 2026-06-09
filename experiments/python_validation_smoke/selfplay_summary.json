@@ -1,0 +1,12 @@
+{
+  "backend": "python",
+  "games": 5,
+  "path": "experiments\\python_validation_smoke\\selfplay.jsonl",
+  "records": 22,
+  "replay_dir": null,
+  "teams": "single",
+  "winner_record_counts": {
+    "1": 12,
+    "2": 10
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "artifacts": {
+    "agent": "experiments\\python_validation_smoke\\agent.json",
+    "config": "experiments\\python_validation_smoke\\config.json",
+    "selfplay": "experiments\\python_validation_smoke\\selfplay.jsonl",
+    "selfplay_summary": "experiments\\python_validation_smoke\\selfplay_summary.json",
+    "summary_text": "experiments\\python_validation_smoke\\summary.txt",
+    "train_metrics": "experiments\\python_validation_smoke\\train_metrics.json",
+    "validation_report": "experiments\\python_validation_smoke\\validation_report.json"
+  },
+  "config": {
+    "agent_name": "",
+    "agent_player": 1,
+    "agent_temperature": 0.0,
+    "backend": "python",
+    "created_at_utc": "2026-06-09T06:35:55+00:00",
+    "depth": 1,
+    "epochs": 3,
+    "eval_games": 5,
+    "eval_mcts_depth": 4,
+    "eval_mcts_sims": 8,
+    "eval_opponents": [
+      "first",
+      "random",
+      "damage"
+    ],
+    "eval_turns": 20,
+    "explain_top": 0,
+    "feature_schema_version": 5,
+    "format": "gen5ou",
+    "games": 5,
+    "learning_rate": 0.05,
+    "node_bin": "node",
+    "save_replay_logs": false,
+    "seed": 1,
+    "showdown_root": null,
+    "sims": 2,
+    "strict_validation": false,
+    "teams": "single",
+    "timeout": 30,
+    "trace_actions": 0,
+    "turns": 5
+  },
+  "evaluation": {
+    "damage": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-python_validation_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 1.0,
+      "agent_wins": 5,
+      "average_turns": 2.0,
+      "backend": "python",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 5,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "damage",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 5,
+      "p2_wins": 0,
+      "replay_dir": null,
+      "report_path": "experiments\\python_validation_smoke\\eval_damage.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 20,
+      "unresolved": 0,
+      "unresolved_rate": 0.0
+    },
+    "first": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-python_validation_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 1.0,
+      "agent_wins": 5,
+      "average_turns": 2.0,
+      "backend": "python",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 5,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "first",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 5,
+      "p2_wins": 0,
+      "replay_dir": null,
+      "report_path": "experiments\\python_validation_smoke\\eval_first.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 20,
+      "unresolved": 0,
+      "unresolved_rate": 0.0
+    },
+    "random": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-python_validation_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 1.0,
+      "agent_wins": 5,
+      "average_turns": 2.0,
+      "backend": "python",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 5,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "random",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 5,
+      "p2_wins": 0,
+      "replay_dir": null,
+      "report_path": "experiments\\python_validation_smoke\\eval_random.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 20,
+      "unresolved": 0,
+      "unresolved_rate": 0.0
+    }
+  },
+  "selfplay": {
+    "backend": "python",
+    "games": 5,
+    "path": "experiments\\python_validation_smoke\\selfplay.jsonl",
+    "records": 22,
+    "replay_dir": null,
+    "teams": "single",
+    "winner_record_counts": {
+      "1": 12,
+      "2": 10
+    }
+  },
+  "training": {
+    "agent_name": "backend-experiment-python_validation_smoke",
+    "epochs": 3,
+    "feature_schema_version": 5,
+    "input_files": [
+      "experiments\\python_validation_smoke\\selfplay.jsonl"
+    ],
+    "learning_rate": 0.05,
+    "model_schema_version": 1,
+    "output_model": "experiments\\python_validation_smoke\\agent.json",
+    "policy_loss_avg": 1.0217274982159399,
+    "policy_loss_total": 67.43401488225203,
+    "policy_weight_count": 52,
+    "records": 22,
+    "updates": 66,
+    "value_loss_avg": 1.1341356816959474,
+    "value_loss_total": 74.85295499193252,
+    "value_updates": 66,
+    "value_weight_count": 15
+  },
+  "validation": {
+    "action_kind_counts": {
+      "move": 73
+    },
+    "backend_counts": {
+      "python": 22
+    },
+    "chosen_kind_counts": {
+      "move": 22
+    },
+    "decision_records": 22,
+    "errors": [],
+    "feature_schema_version": 5,
+    "move_actions": 73,
+    "move_actions_with_metadata": 73,
+    "move_metadata_rate": 1.0,
+    "paths": [
+      "experiments\\python_validation_smoke\\selfplay.jsonl"
+    ],
+    "player_counts": {
+      "1": 11,
+      "2": 11
+    },
+    "records": 22,
+    "switch_actions": 0,
+    "switch_actions_with_metadata": 0,
+    "switch_metadata_rate": 0.0,
+    "valid": true,
+    "warnings": [],
+    "winner_counts": {
+      "1": 12,
+      "2": 10
+    }
+  }
+}

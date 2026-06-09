@@ -1,0 +1,11 @@
+{
+  "backend": "showdown",
+  "games": 1,
+  "path": "experiments\\showdown_validation_smoke\\selfplay.jsonl",
+  "records": 2,
+  "replay_dir": "experiments\\showdown_validation_smoke\\replays\\selfplay",
+  "teams": "single",
+  "winner_record_counts": {
+    "1": 2
+  }
+}

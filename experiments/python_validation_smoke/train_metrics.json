@@ -1,0 +1,122 @@
+{
+  "agent_name": "backend-experiment-python_validation_smoke",
+  "epochs": 3,
+  "feature_schema_version": 5,
+  "input_files": [
+    "experiments\\python_validation_smoke\\selfplay.jsonl"
+  ],
+  "learning_rate": 0.05,
+  "model_schema_version": 1,
+  "output_model": "experiments\\python_validation_smoke\\agent.json",
+  "policy_loss_avg": 1.0217274982159399,
+  "policy_loss_total": 67.43401488225203,
+  "policy_weight_count": 52,
+  "records": 22,
+  "top_weights": {
+    "policy": [
+      {
+        "feature": "action_index_3",
+        "weight": -0.23004536109464357
+      },
+      {
+        "feature": "move_neutral",
+        "weight": 0.2183492206797329
+      },
+      {
+        "feature": "move_stab",
+        "weight": 0.1729950034861629
+      },
+      {
+        "feature": "move_2hko",
+        "weight": 0.162046353278035
+      },
+      {
+        "feature": "move_contact",
+        "weight": 0.15313623072379617
+      },
+      {
+        "feature": "move_type_dark",
+        "weight": 0.14382020733866147
+      },
+      {
+        "feature": "action_index_0",
+        "weight": 0.1330654206787222
+      },
+      {
+        "feature": "move_type_normal",
+        "weight": -0.13301813422435663
+      },
+      {
+        "feature": "move_3hko",
+        "weight": 0.11175581006772387
+      },
+      {
+        "feature": "action_index_norm",
+        "weight": -0.10507019971991792
+      },
+      {
+        "feature": "move_expected_damage",
+        "weight": 0.1046125371545664
+      },
+      {
+        "feature": "move_type_ground",
+        "weight": -0.09702722687028695
+      }
+    ],
+    "value": [
+      {
+        "feature": "own_type_rock",
+        "weight": 0.07869127078184485
+      },
+      {
+        "feature": "own_type_dark",
+        "weight": 0.07869127078184485
+      },
+      {
+        "feature": "opp_type_flying",
+        "weight": 0.07869127078184485
+      },
+      {
+        "feature": "opp_type_dragon",
+        "weight": 0.07869127078184485
+      },
+      {
+        "feature": "own_active_hp",
+        "weight": 0.070101624960699
+      },
+      {
+        "feature": "bias",
+        "weight": 0.05729995517906672
+      },
+      {
+        "feature": "weather_sandstorm",
+        "weight": 0.05729995517906672
+      },
+      {
+        "feature": "opp_active_hp",
+        "weight": 0.04259999301077963
+      },
+      {
+        "feature": "active_hp_diff",
+        "weight": 0.027501631949919378
+      },
+      {
+        "feature": "own_type_flying",
+        "weight": -0.021391315602778155
+      },
+      {
+        "feature": "own_type_dragon",
+        "weight": -0.021391315602778155
+      },
+      {
+        "feature": "opp_type_rock",
+        "weight": -0.021391315602778155
+      }
+    ]
+  },
+  "updates": 66,
+  "value_loss_avg": 1.1341356816959474,
+  "value_loss_total": 74.85295499193252,
+  "value_updates": 66,
+  "value_weight_count": 15
+}
