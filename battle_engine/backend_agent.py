@@ -71,6 +71,51 @@ def _record_context(record: dict[str, Any]) -> tuple[dict[str, Any], int, list[A
     return summary, player, legal, chosen
 
 
+def action_to_payload(action: Action | dict[str, Any]) -> dict[str, Any]:
+    parsed = action_from_payload(action)
+    payload: dict[str, Any] = {"kind": parsed.kind, "index": parsed.index}
+    if parsed.metadata:
+        payload.update(parsed.metadata)
+    return payload
+
+
+def _top_contributions(
+    weights: dict[str, float],
+    features: dict[str, float],
+    *,
+    limit: int,
+) -> list[dict[str, float | str]]:
+    if limit <= 0:
+        return []
+    contributions: list[dict[str, float | str]] = []
+    for name, value in features.items():
+        weight = weights.get(name, 0.0)
+        contribution = weight * value
+        if contribution == 0.0:
+            continue
+        contributions.append(
+            {
+                "feature": name,
+                "value": value,
+                "weight": weight,
+                "contribution": contribution,
+            }
+        )
+    contributions.sort(key=lambda item: abs(float(item["contribution"])), reverse=True)
+    return contributions[:limit]
+
+
+def _top_weights(weights: dict[str, float], *, limit: int) -> list[dict[str, float | str]]:
+    if limit <= 0:
+        return []
+    rows = [
+        {"feature": name, "weight": weight}
+        for name, weight in sorted(weights.items(), key=lambda item: abs(item[1]), reverse=True)
+        if weight != 0.0
+    ]
+    return rows[:limit]
+
+
 @dataclass
 class BackendLinearPolicyValueAgent:
     """Linear policy/value model trained from backend self-play JSONL records.
@@ -133,6 +178,66 @@ class BackendLinearPolicyValueAgent:
             if c >= r:
                 return action
         return parsed[-1]
+
+    def explain_action(
+        self,
+        summary: dict[str, Any],
+        player: int,
+        action: Action | dict[str, Any],
+        *,
+        top_contributions: int = 8,
+    ) -> dict[str, Any]:
+        parsed = action_from_payload(action)
+        features = backend_action_features(summary, player, parsed)
+        score = dot(self.policy_weights, features)
+        return {
+            "action": action_to_payload(parsed),
+            "label": backend_action_label(parsed),
+            "score": score,
+            "top_contributions": _top_contributions(
+                self.policy_weights,
+                features,
+                limit=top_contributions,
+            ),
+        }
+
+    def rank_actions(
+        self,
+        summary: dict[str, Any],
+        player: int,
+        actions: list[Action | dict[str, Any]],
+        *,
+        top_contributions: int = 0,
+    ) -> list[dict[str, Any]]:
+        parsed = [action_from_payload(action) for action in actions]
+        if not parsed:
+            return []
+        scores = [self.score_action(summary, player, action) for action in parsed]
+        probabilities = softmax_scores(scores)
+        rows: list[dict[str, Any]] = []
+        for action, score, probability in zip(parsed, scores, probabilities):
+            row = {
+                "action": action_to_payload(action),
+                "label": backend_action_label(action),
+                "score": score,
+                "probability": probability,
+            }
+            if top_contributions > 0:
+                row["top_contributions"] = self.explain_action(
+                    summary,
+                    player,
+                    action,
+                    top_contributions=top_contributions,
+                )["top_contributions"]
+            rows.append(row)
+        rows.sort(key=lambda row: float(row["score"]), reverse=True)
+        return rows
+
+    def top_weights(self, *, limit: int = 12) -> dict[str, list[dict[str, float | str]]]:
+        return {
+            "policy": _top_weights(self.policy_weights, limit=limit),
+            "value": _top_weights(self.value_weights, limit=limit),
+        }
 
     def update_policy_toward(
         self,

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any, TextIO
 
 from battle_engine.backends import BackendUnavailableError, BattleBackend, create_backend
+from battle_engine.replay_logs import new_replay_capture, update_replay_capture, write_replay_files
 from battle_engine.mcts import MCTSAgent, MCTSConfig, MCTSResult
 from battle_engine.model import Action, PokemonSet
 from battle_engine.sample_sets import TEAM_BALANCE_A, TEAM_BALANCE_B, TYRANITAR_CB, DRAGONITE_DD
@@ -67,7 +68,9 @@ def _build_teams(mode: str, rng: random.Random) -> GameTeams:
     raise ValueError(f"Unknown team mode: {mode}")
 
 
-def _handle_replacements(backend: BattleBackend, rng: random.Random) -> list[dict[str, Any]]:
+def _handle_replacements(
+    backend: BattleBackend, rng: random.Random, replay_capture: dict[str, list[str]] | None = None
+) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     changed = True
     while changed and backend.winner() is None:
@@ -80,6 +83,7 @@ def _handle_replacements(backend: BattleBackend, rng: random.Random) -> list[dic
                 continue
             action = rng.choice(switches)
             result = backend.replace_fainted(player, action.index)
+            update_replay_capture(replay_capture, result)
             events.append(
                 {
                     "player": player,
@@ -140,6 +144,8 @@ def play_backend_game(
     node_bin: str = "node",
     format_id: str = "gen5ou",
     timeout: int = 30,
+    replay_log_dir: str | Path | None = None,
+    teams_mode: str | None = None,
 ) -> list[dict[str, Any]]:
     backend = create_backend(
         backend_name,  # type: ignore[arg-type]
@@ -153,9 +159,10 @@ def play_backend_game(
     )
     agent = MCTSAgent(MCTSConfig(simulations=sims, max_depth=depth), rng=rng)
     records: list[dict[str, Any]] = []
+    replay_capture = new_replay_capture() if replay_log_dir else None
 
     for turn_index in range(1, turns + 1):
-        replacement_events = _handle_replacements(backend, rng)
+        replacement_events = _handle_replacements(backend, rng, replay_capture)
         if replacement_events and records:
             records[-1].setdefault("replacement_events_after_turn", []).extend(replacement_events)
 
@@ -201,6 +208,7 @@ def play_backend_game(
         )
 
         turn_result = backend.step(p1_result.action, p2_result.action)
+        update_replay_capture(replay_capture, turn_result)
         records[-2]["turn_result"] = {
             "winner_after": turn_result.winner,
             "log_lines": turn_result.log_lines,
@@ -218,6 +226,29 @@ def play_backend_game(
         player = int(record["player"])
         record["final_winner"] = final_winner
         record["value_target"] = value_target(final_winner, player)
+
+    if replay_log_dir:
+        write_replay_files(
+            replay_log_dir,
+            game_id=game_id,
+            log_lines=replay_capture["log_lines"] if replay_capture else [],
+            input_log=replay_capture["input_log"] if replay_capture else [],
+            metadata={
+                "source": "backend_selfplay",
+                "backend": backend.name,
+                "game_id": game_id,
+                "seed": seed,
+                "format": format_id,
+                "teams_mode": teams_mode,
+                "turn_limit": turns,
+                "mcts_sims": sims,
+                "mcts_depth": depth,
+                "final_winner": final_winner,
+                "team1_species": _team_species(team1),
+                "team2_species": _team_species(team2),
+                "final_summary": backend.state_summary(),
+            },
+        )
     return records
 
 
@@ -248,6 +279,8 @@ def run_selfplay(args: argparse.Namespace) -> int:
             node_bin=args.node_bin,
             format_id=args.format,
             timeout=args.timeout,
+            replay_log_dir=args.save_replay_logs,
+            teams_mode=args.teams,
         )
         all_records.extend(records)
 
@@ -282,6 +315,11 @@ def main() -> None:
     parser.add_argument("--node-bin", default="node")
     parser.add_argument("--format", default="gen5ou", help="Showdown format id.")
     parser.add_argument("--timeout", type=int, default=30, help="Seconds per Showdown bridge call.")
+    parser.add_argument(
+        "--save-replay-logs",
+        default=None,
+        help="Optional directory for one raw battle .log plus metadata .json per game.",
+    )
     args = parser.parse_args()
 
     try:

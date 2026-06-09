@@ -1,0 +1,31 @@
+{
+  "agent_name": "",
+  "agent_player": 1,
+  "agent_temperature": 0.0,
+  "backend": "showdown",
+  "created_at_utc": "2026-06-09T05:21:01+00:00",
+  "depth": 0,
+  "epochs": 1,
+  "eval_games": 1,
+  "eval_mcts_depth": 4,
+  "eval_mcts_sims": 8,
+  "eval_opponents": [
+    "first",
+    "damage"
+  ],
+  "eval_turns": 1,
+  "explain_top": 0,
+  "feature_schema_version": 5,
+  "format": "gen5ou",
+  "games": 1,
+  "learning_rate": 0.05,
+  "node_bin": "node",
+  "save_replay_logs": true,
+  "seed": 1,
+  "showdown_root": null,
+  "sims": 1,
+  "teams": "single",
+  "timeout": 30,
+  "trace_actions": 0,
+  "turns": 1
+}

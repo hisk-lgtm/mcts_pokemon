@@ -1919,6 +1919,56 @@ def test_backend_selfplay_script_writes_python_jsonl(tmp_path):
     assert first["value_target"] in {-1.0, 0.0, 1.0}
 
 
+
+def test_backend_selfplay_can_save_replay_logs(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    out = tmp_path / "selfplay.jsonl"
+    replay_dir = tmp_path / "replays"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/backend_selfplay.py"),
+            "--backend",
+            "python",
+            "--teams",
+            "single",
+            "--games",
+            "1",
+            "--turns",
+            "1",
+            "--sims",
+            "1",
+            "--depth",
+            "0",
+            "--out",
+            str(out),
+            "--save-replay-logs",
+            str(replay_dir),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    log_path = replay_dir / "game_0000.log"
+    meta_path = replay_dir / "game_0000.json"
+    assert log_path.exists()
+    assert meta_path.exists()
+    metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert metadata["source"] == "backend_selfplay"
+    assert metadata["backend"] == "python"
+    assert metadata["replay_log_path"] == str(log_path)
+    assert metadata["line_count"] >= 0
+    assert "raw Showdown battle protocol" in metadata["viewer_note"]
+
 def test_backend_selfplay_script_help_runs():
     import subprocess
     import sys
@@ -2162,6 +2212,25 @@ def test_backend_linear_agent_updates_from_record_and_round_trips(tmp_path):
     assert loaded.to_dict() == agent.to_dict()
 
 
+def test_backend_linear_agent_ranks_and_explains_actions():
+    from battle_engine.backend_agent import BackendLinearPolicyValueAgent
+
+    record = _backend_training_record(chosen_index=1, value_target=1.0)
+    agent = BackendLinearPolicyValueAgent(
+        policy_weights={"action_index_1": 2.0, "action_is_move": 0.5},
+        value_weights={"bias": 0.25},
+    )
+
+    ranked = agent.rank_actions(record["state_summary"], 1, record["legal_actions"], top_contributions=2)
+
+    assert ranked[0]["label"] == "move:1"
+    assert ranked[0]["score"] > ranked[1]["score"]
+    assert ranked[0]["probability"] > 0.0
+    assert ranked[0]["top_contributions"]
+    assert ranked[0]["top_contributions"][0]["feature"] == "action_index_1"
+    assert agent.top_weights(limit=1)["policy"] == [{"feature": "action_index_1", "weight": 2.0}]
+
+
 def test_train_backend_agent_script_trains_from_jsonl(tmp_path):
     import json
     import subprocess
@@ -2203,6 +2272,8 @@ def test_train_backend_agent_script_trains_from_jsonl(tmp_path):
 
     assert result.returncode == 0, result.stdout
     assert "Trained backend agent" in result.stdout
+    assert "feature_schema=v" in result.stdout
+    assert "Top policy weights" in result.stdout
 
     model = json.loads(model_path.read_text(encoding="utf-8"))
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
@@ -2211,6 +2282,8 @@ def test_train_backend_agent_script_trains_from_jsonl(tmp_path):
     assert model["value_weights"]
     assert metrics["records"] == 2
     assert metrics["updates"] == 4
+    assert metrics["feature_schema_version"] >= 5
+    assert metrics["top_weights"]["policy"]
 
 
 def test_train_backend_agent_script_help_runs():
@@ -2286,6 +2359,10 @@ def test_evaluate_backend_agent_script_runs_python_backend(tmp_path):
             "first",
             "--out",
             str(report_path),
+            "--trace-actions",
+            "2",
+            "--explain-top",
+            "2",
         ],
         cwd=root,
         stdout=subprocess.PIPE,
@@ -2296,12 +2373,71 @@ def test_evaluate_backend_agent_script_runs_python_backend(tmp_path):
 
     assert result.returncode == 0, result.stdout
     assert "Backend agent evaluation" in result.stdout
+    assert "Feature schema:" in result.stdout
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report["summary"]["games"] == 1
     assert report["summary"]["backend"] == "python"
     assert len(report["games"]) == 1
+    assert report["summary"]["trace_actions"] == 2
     assert report["games"][0]["team1_species"] == ["Tyranitar"]
+    trace = report["games"][0]["action_trace"]
+    assert trace
+    assert trace[0]["chosen_label"].startswith("move:") or trace[0]["chosen_label"].startswith("switch:")
+    assert trace[0]["ranked_actions"]
+    assert "chosen_rank" in trace[0]
 
+
+
+def test_evaluate_backend_agent_can_save_replay_logs(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from battle_engine.backend_agent import BackendLinearPolicyValueAgent
+
+    root = Path(__file__).resolve().parents[1]
+    model_path = tmp_path / "backend_agent.json"
+    report_path = tmp_path / "evaluation.json"
+    replay_dir = tmp_path / "eval_replays"
+    BackendLinearPolicyValueAgent(policy_weights={"action_is_move": 1.0}).save(model_path)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/evaluate_backend_agent.py"),
+            "--agent",
+            str(model_path),
+            "--backend",
+            "python",
+            "--teams",
+            "single",
+            "--games",
+            "1",
+            "--turns",
+            "1",
+            "--opponent",
+            "first",
+            "--out",
+            str(report_path),
+            "--save-replay-logs",
+            str(replay_dir),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    replay_files = report["games"][0]["replay_files"]
+    assert replay_files["replay_log_path"] == str(replay_dir / "game_0000.log")
+    assert Path(replay_files["metadata_path"]).exists()
+    metadata = json.loads(Path(replay_files["metadata_path"]).read_text(encoding="utf-8"))
+    assert metadata["source"] == "evaluate_backend_agent"
+    assert metadata["agent_name"]
 
 def test_evaluate_backend_agent_script_help_runs():
     import subprocess
@@ -2320,6 +2456,48 @@ def test_evaluate_backend_agent_script_help_runs():
 
     assert result.returncode == 0
     assert "Evaluate a saved backend policy/value agent" in result.stdout
+
+
+def test_evaluate_backend_agent_damage_policy_prefers_expected_damage():
+    from examples.evaluate_backend_agent import _choose_damage_policy_action
+
+    summary = {
+        "weather": None,
+        "p1": {
+            "active": "Tyranitar",
+            "types": ["Rock", "Dark"],
+            "level": 50,
+            "stats": {"atk": 204, "def": 130, "spa": 103, "spd": 120},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 176,
+            "max_hp": 176,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+        "p2": {
+            "active": "Dragonite",
+            "types": ["Dragon", "Flying"],
+            "level": 50,
+            "stats": {"atk": 186, "def": 115, "spa": 108, "spd": 120},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 167,
+            "max_hp": 167,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+    legal = [
+        Action("move", 0, {"id": "crunch", "type": "Dark", "category": "physical", "base_power": 80, "accuracy": 100}),
+        Action("move", 1, {"id": "stoneedge", "type": "Rock", "category": "physical", "base_power": 100, "accuracy": 80}),
+        Action("move", 2, {"id": "dragondance", "type": "Dragon", "category": "status", "base_power": 0, "accuracy": True}),
+    ]
+
+    chosen = _choose_damage_policy_action(summary, 1, legal)
+
+    assert chosen.index == 1
+    assert chosen.metadata["id"] == "stoneedge"
 
 
 def test_action_metadata_does_not_affect_action_identity():
@@ -2413,6 +2591,218 @@ def test_backend_action_features_use_move_metadata_from_payload():
     assert features["move_when_opp_low_hp"] == 1.0
 
 
+
+
+def test_backend_action_features_include_stab_and_type_effectiveness():
+    from battle_engine.backend_features import backend_action_features
+
+    summary = {
+        "weather": None,
+        "terrain": None,
+        "p1": {
+            "active": "Tyranitar",
+            "types": ["Rock", "Dark"],
+            "hp": 176,
+            "max_hp": 176,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+        "p2": {
+            "active": "Dragonite",
+            "types": ["Dragon", "Flying"],
+            "hp": 167,
+            "max_hp": 167,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+
+    stone_edge = {
+        "kind": "move",
+        "index": 1,
+        "id": "stoneedge",
+        "type": "Rock",
+        "category": "physical",
+        "base_power": 100,
+        "accuracy": 80,
+    }
+    crunch = {
+        "kind": "move",
+        "index": 0,
+        "id": "crunch",
+        "type": "Dark",
+        "category": "physical",
+        "base_power": 80,
+        "accuracy": 100,
+    }
+
+    rock_features = backend_action_features(summary, 1, stone_edge)
+    dark_features = backend_action_features(summary, 1, crunch)
+
+    assert rock_features["own_type_rock"] == 1.0
+    assert rock_features["own_type_dark"] == 1.0
+    assert rock_features["opp_type_dragon"] == 1.0
+    assert rock_features["opp_type_flying"] == 1.0
+    assert rock_features["move_stab"] == 1.0
+    assert rock_features["move_effectiveness"] == 2.0
+    assert rock_features["move_super_effective"] == 1.0
+    assert rock_features["move_resisted"] == 0.0
+    assert rock_features["move_immune"] == 0.0
+    assert rock_features["move_effective_power"] == 2.0
+
+    assert dark_features["move_stab"] == 1.0
+    assert dark_features["move_effectiveness"] == 1.0
+    assert dark_features["move_neutral"] == 1.0
+
+
+def test_backend_action_features_mark_resisted_and_immune_moves():
+    from battle_engine.backend_features import backend_action_features
+
+    resisted_summary = {
+        "p1": {"active": "Tyranitar", "types": ["Rock", "Dark"], "hp": 176, "max_hp": 176, "alive": 1, "hazards": {}},
+        "p2": {"active": "Skarmory", "types": ["Steel", "Flying"], "hp": 140, "max_hp": 140, "alive": 1, "hazards": {}},
+    }
+    immune_summary = {
+        "p1": {"active": "Tyranitar", "types": ["Rock", "Dark"], "hp": 176, "max_hp": 176, "alive": 1, "hazards": {}},
+        "p2": {"active": "Gengar", "types": ["Ghost", "Poison"], "hp": 120, "max_hp": 120, "alive": 1, "hazards": {}},
+    }
+
+    crunch = {"kind": "move", "index": 0, "type": "Dark", "category": "physical", "base_power": 80}
+    normal_hit = {"kind": "move", "index": 0, "type": "Normal", "category": "physical", "base_power": 80}
+
+    resisted = backend_action_features(resisted_summary, 1, crunch)
+    immune = backend_action_features(immune_summary, 1, normal_hit)
+
+    assert resisted["move_effectiveness"] == 0.5
+    assert resisted["move_resisted"] == 1.0
+    assert resisted["move_effective_power"] == 0.4
+    assert immune["move_effectiveness"] == 0.0
+    assert immune["move_immune"] == 1.0
+    assert immune["move_effective_power"] == 0.0
+
+
+
+def test_python_backend_summary_exposes_stats_for_backend_damage_features():
+    from battle_engine.backends import PythonBattleBackend
+
+    backend = PythonBattleBackend([TYRANITAR_CB], [DRAGONITE_DD], seed=403)
+    summary = backend.state_summary()
+
+    assert summary["p1"]["level"] == 50
+    assert summary["p1"]["stats"]["atk"] > 100
+    assert summary["p1"]["boosts"]["atk"] == 0
+    assert summary["p2"]["stats"]["def"] > 0
+
+
+def test_backend_action_features_include_rough_damage_estimates():
+    from battle_engine.backend_features import backend_action_features
+
+    summary = {
+        "weather": None,
+        "p1": {
+            "active": "Tyranitar",
+            "types": ["Rock", "Dark"],
+            "level": 50,
+            "stats": {"atk": 204, "def": 130, "spa": 103, "spd": 120},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 176,
+            "max_hp": 176,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+        "p2": {
+            "active": "Dragonite",
+            "types": ["Dragon", "Flying"],
+            "level": 50,
+            "stats": {"atk": 186, "def": 115, "spa": 108, "spd": 120},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 167,
+            "max_hp": 167,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+    stone_edge = {
+        "kind": "move",
+        "index": 1,
+        "id": "stoneedge",
+        "type": "Rock",
+        "category": "physical",
+        "base_power": 100,
+        "accuracy": 80,
+    }
+    status_move = {
+        "kind": "move",
+        "index": 0,
+        "id": "dragondance",
+        "type": "Dragon",
+        "category": "status",
+        "base_power": 0,
+        "accuracy": True,
+    }
+
+    features = backend_action_features(summary, 1, stone_edge)
+    status_features = backend_action_features(summary, 2, status_move)
+
+    assert features["move_damage_estimate"] > 0.5
+    assert features["move_expected_damage"] < features["move_damage_estimate"]
+    assert features["move_damage_accuracy_discount"] > 0.0
+    assert features["move_can_ko"] == 1.0
+    assert features["move_2hko"] == 1.0
+    assert features["move_overkill"] > 0.0
+
+    assert status_features["move_damage_estimate"] == 0.0
+    assert status_features["move_can_ko"] == 0.0
+
+
+def test_backend_action_features_rough_damage_uses_burn_and_weather():
+    from battle_engine.backend_features import backend_action_features
+
+    base_summary = {
+        "weather": None,
+        "p1": {
+            "active": "Starmie",
+            "types": ["Water", "Psychic"],
+            "level": 50,
+            "stats": {"atk": 85, "def": 105, "spa": 152, "spd": 105},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 136,
+            "max_hp": 136,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+        "p2": {
+            "active": "Tyranitar",
+            "types": ["Rock", "Dark"],
+            "level": 50,
+            "stats": {"atk": 204, "def": 130, "spa": 103, "spd": 120},
+            "boosts": {"atk": 0, "def": 0, "spa": 0, "spd": 0},
+            "hp": 176,
+            "max_hp": 176,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+    surf = {"kind": "move", "index": 0, "type": "Water", "category": "special", "base_power": 95, "accuracy": 100}
+    fire_punch = {"kind": "move", "index": 1, "type": "Fire", "category": "physical", "base_power": 75, "accuracy": 100}
+
+    dry = backend_action_features(base_summary, 1, surf)
+    rain_summary = dict(base_summary, weather="rain")
+    rain = backend_action_features(rain_summary, 1, surf)
+
+    burned_summary = {**base_summary, "p1": {**base_summary["p1"], "status": "brn"}}
+    physical_dry = backend_action_features(base_summary, 1, fire_punch)
+    physical_burned = backend_action_features(burned_summary, 1, fire_punch)
+
+    assert rain["move_damage_estimate"] > dry["move_damage_estimate"]
+    assert physical_burned["move_damage_estimate"] < physical_dry["move_damage_estimate"]
+
 def test_showdown_backend_legal_actions_include_move_metadata_when_available():
     import pytest
 
@@ -2432,3 +2822,199 @@ def test_showdown_backend_legal_actions_include_move_metadata_when_available():
     assert stone_edge.metadata["category"] == "physical"
     assert stone_edge.metadata["base_power"] == 100
     assert stone_edge.metadata["accuracy"] == 80
+
+
+def test_backend_action_features_score_switch_target_hazards_and_types():
+    from battle_engine.backend_features import backend_action_features
+
+    summary = {
+        "p1": {
+            "active": "Gengar",
+            "types": ["Ghost", "Poison"],
+            "hp": 20,
+            "max_hp": 120,
+            "status": "brn",
+            "alive": 2,
+            "hazards": {"sr": True, "spikes": 1},
+        },
+        "p2": {
+            "active": "Dragonite",
+            "types": ["Dragon", "Flying"],
+            "hp": 167,
+            "max_hp": 167,
+            "status": None,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+    switch = {
+        "kind": "switch",
+        "index": 1,
+        "species": "Skarmory",
+        "types": ["Steel", "Flying"],
+        "hp_fraction": 0.75,
+        "status": None,
+    }
+
+    features = backend_action_features(summary, 1, switch)
+
+    assert features["action_is_switch"] == 1.0
+    assert features["switch_target_type_steel"] == 1.0
+    assert features["switch_target_type_flying"] == 1.0
+    assert features["switch_target_hp"] == 0.75
+    assert features["switch_stealth_rock_damage"] == 0.125
+    assert features["switch_spikes_damage"] == 0.0
+    assert features["switch_hazard_damage"] == 0.125
+    assert features["switch_hp_after_hazards"] == 0.625
+    assert features["switch_resists_opp_stab"] == 1.0
+    assert features["switch_weak_to_opp_stab"] == 0.0
+    assert features["switch_vs_opp_stab_max_effectiveness"] == 0.5
+    assert features["switch_when_own_low_hp"] == 1.0
+    assert features["switch_when_own_statused"] == 1.0
+
+
+def test_backend_action_features_mark_switch_fainting_to_hazards():
+    from battle_engine.backend_features import backend_action_features
+
+    summary = {
+        "p1": {
+            "active": "Blissey",
+            "types": ["Normal"],
+            "hp": 100,
+            "max_hp": 300,
+            "alive": 2,
+            "hazards": {"stealth_rock": True, "spikes": 3},
+        },
+        "p2": {
+            "active": "Tyranitar",
+            "types": ["Rock", "Dark"],
+            "hp": 176,
+            "max_hp": 176,
+            "alive": 1,
+            "hazards": {},
+        },
+    }
+    switch = {
+        "kind": "switch",
+        "index": 1,
+        "species": "Volcarona",
+        "types": ["Bug", "Fire"],
+        "hp_fraction": 0.49,
+        "status": "par",
+    }
+
+    features = backend_action_features(summary, 1, switch)
+
+    assert features["switch_target_type_bug"] == 1.0
+    assert features["switch_target_type_fire"] == 1.0
+    assert features["switch_target_statused"] == 1.0
+    assert features["switch_target_rock_weak"] == 1.0
+    assert features["switch_stealth_rock_damage"] == 0.5
+    assert features["switch_spikes_damage"] == 0.25
+    assert features["switch_hazard_damage"] == 0.75
+    assert features["switch_hp_after_hazards"] == 0.0
+    assert features["switch_likely_faints_to_hazards"] == 1.0
+    assert features["switch_weak_to_opp_stab"] == 1.0
+
+
+def test_replay_log_writer_saves_log_metadata_and_input_log(tmp_path):
+    import json
+
+    from battle_engine.replay_logs import write_replay_files
+
+    result = write_replay_files(
+        tmp_path,
+        game_id=7,
+        log_lines=["|turn|1", "|win|p1"],
+        input_log=[">start {}", ">p1 move 1"],
+        metadata={"backend": "showdown", "source": "unit"},
+    )
+
+    assert (tmp_path / "game_0007.log").read_text(encoding="utf-8").splitlines() == ["|turn|1", "|win|p1"]
+    assert (tmp_path / "game_0007.input.log").exists()
+    metadata = json.loads((tmp_path / "game_0007.json").read_text(encoding="utf-8"))
+    assert metadata["backend"] == "showdown"
+    assert metadata["line_count"] == 2
+    assert metadata["input_line_count"] == 2
+    assert result["input_log_path"] == str(tmp_path / "game_0007.input.log")
+
+
+def test_run_backend_experiment_script_help_runs():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "examples/run_backend_experiment.py"), "--help"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0
+    assert "complete backend learning experiment" in result.stdout
+
+
+def test_run_backend_experiment_writes_complete_python_experiment(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    out_dir = tmp_path / "experiment"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/run_backend_experiment.py"),
+            "--backend",
+            "python",
+            "--teams",
+            "single",
+            "--games",
+            "1",
+            "--turns",
+            "1",
+            "--sims",
+            "1",
+            "--depth",
+            "0",
+            "--epochs",
+            "1",
+            "--eval-games",
+            "1",
+            "--eval-turns",
+            "1",
+            "--eval-opponents",
+            "first",
+            "random",
+            "--out-dir",
+            str(out_dir),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert (out_dir / "config.json").exists()
+    assert (out_dir / "selfplay.jsonl").exists()
+    assert (out_dir / "selfplay_summary.json").exists()
+    assert (out_dir / "agent.json").exists()
+    assert (out_dir / "train_metrics.json").exists()
+    assert (out_dir / "eval_first.json").exists()
+    assert (out_dir / "eval_random.json").exists()
+    assert (out_dir / "summary.json").exists()
+    assert (out_dir / "summary.txt").exists()
+
+    summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["config"]["backend"] == "python"
+    assert summary["selfplay"]["records"] == 2
+    assert summary["evaluation"]["first"]["games"] == 1
+    assert summary["evaluation"]["random"]["games"] == 1
+    assert "Backend experiment summary" in (out_dir / "summary.txt").read_text(encoding="utf-8")

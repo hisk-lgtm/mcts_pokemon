@@ -1,0 +1,189 @@
+{
+  "agent_name": "backend-experiment-showdown_smoke_001",
+  "agent_player": 1,
+  "artifact_type": "raw_backend_battle_log",
+  "backend": "showdown",
+  "final_summary": {
+    "backend": "showdown",
+    "ended": false,
+    "format": "gen5ou",
+    "history_length": 1,
+    "p1": {
+      "active": "Tyranitar",
+      "active_index": 0,
+      "alive_count": 1,
+      "mons": [
+        {
+          "ability": "sandstream",
+          "active": true,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 0,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 0
+          },
+          "fainted": false,
+          "hp": 176,
+          "item": "choiceband",
+          "level": 50,
+          "max_hp": 176,
+          "moves": [
+            {
+              "disabled": true,
+              "id": "crunch",
+              "maxpp": 24,
+              "move": "Crunch",
+              "pp": 24
+            },
+            {
+              "disabled": false,
+              "id": "stoneedge",
+              "maxpp": 8,
+              "move": "Stone Edge",
+              "pp": 7
+            },
+            {
+              "disabled": true,
+              "id": "superpower",
+              "maxpp": 8,
+              "move": "Superpower",
+              "pp": 8
+            },
+            {
+              "disabled": true,
+              "id": "earthquake",
+              "maxpp": 16,
+              "move": "Earthquake",
+              "pp": 16
+            }
+          ],
+          "name": "Tyranitar",
+          "species": "Tyranitar",
+          "stats": {
+            "atk": 204,
+            "def": 130,
+            "spa": 103,
+            "spd": 120,
+            "spe": 113
+          },
+          "status": null,
+          "types": [
+            "Rock",
+            "Dark"
+          ]
+        }
+      ],
+      "name": "p1",
+      "needs_replacement": false,
+      "side_conditions": {},
+      "types": [
+        "Rock",
+        "Dark"
+      ]
+    },
+    "p2": {
+      "active": "Dragonite",
+      "active_index": 0,
+      "alive_count": 1,
+      "mons": [
+        {
+          "ability": "multiscale",
+          "active": true,
+          "boosts": {
+            "accuracy": 0,
+            "atk": 1,
+            "def": 0,
+            "evasion": 0,
+            "spa": 0,
+            "spd": 0,
+            "spe": 1
+          },
+          "fainted": false,
+          "hp": 157,
+          "item": "lumberry",
+          "level": 50,
+          "max_hp": 167,
+          "moves": [
+            {
+              "disabled": false,
+              "id": "dragondance",
+              "maxpp": 32,
+              "move": "Dragon Dance",
+              "pp": 31
+            },
+            {
+              "disabled": false,
+              "id": "dragonclaw",
+              "maxpp": 24,
+              "move": "Dragon Claw",
+              "pp": 24
+            },
+            {
+              "disabled": false,
+              "id": "firepunch",
+              "maxpp": 24,
+              "move": "Fire Punch",
+              "pp": 24
+            },
+            {
+              "disabled": false,
+              "id": "extremespeed",
+              "maxpp": 8,
+              "move": "Extreme Speed",
+              "pp": 8
+            }
+          ],
+          "name": "Dragonite",
+          "species": "Dragonite",
+          "stats": {
+            "atk": 204,
+            "def": 115,
+            "spa": 108,
+            "spd": 120,
+            "spe": 132
+          },
+          "status": null,
+          "types": [
+            "Dragon",
+            "Flying"
+          ]
+        }
+      ],
+      "name": "p2",
+      "needs_replacement": false,
+      "side_conditions": {},
+      "types": [
+        "Dragon",
+        "Flying"
+      ]
+    },
+    "seed": 10001,
+    "showdown_seed": "10001,0,118,7338",
+    "terrain": null,
+    "turn": 2,
+    "weather": "sandstorm",
+    "winner": null
+  },
+  "format": "gen5ou",
+  "game_id": 0,
+  "input_line_count": 7,
+  "input_log_path": "experiments\\showdown_smoke_001\\replays\\eval_first\\game_0000.input.log",
+  "line_count": 46,
+  "opponent": "first",
+  "replay_log_path": "experiments\\showdown_smoke_001\\replays\\eval_first\\game_0000.log",
+  "seed": 10001,
+  "source": "evaluate_backend_agent",
+  "team1_species": [
+    "Tyranitar"
+  ],
+  "team2_species": [
+    "Dragonite"
+  ],
+  "teams_mode": "single",
+  "turn_limit": 1,
+  "viewer_note": "Showdown backend .log files contain raw Showdown battle protocol lines, not hosted pokemonshowdown.com replay URLs.",
+  "winner": null
+}

@@ -10,7 +10,8 @@ import json
 import random
 from typing import Iterable, Any
 
-from battle_engine.backend_agent import BackendLinearPolicyValueAgent
+from battle_engine.backend_agent import MODEL_SCHEMA_VERSION, BackendLinearPolicyValueAgent
+from battle_engine.backend_features import FEATURE_SCHEMA_VERSION
 
 
 def iter_jsonl(paths: list[Path]) -> Iterable[dict[str, Any]]:
@@ -65,6 +66,8 @@ def train_records(
     metrics["value_loss_avg"] = _average(float(metrics["value_loss_total"]), int(metrics["value_updates"]))
     metrics["policy_weight_count"] = len(agent.policy_weights)
     metrics["value_weight_count"] = len(agent.value_weights)
+    metrics["model_schema_version"] = MODEL_SCHEMA_VERSION
+    metrics["feature_schema_version"] = FEATURE_SCHEMA_VERSION
     return metrics
 
 
@@ -82,6 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=1, help="Shuffle seed")
     parser.add_argument("--no-shuffle", action="store_true", help="Keep records in file order each epoch")
     parser.add_argument("--metrics-out", type=Path, help="Optional metrics JSON output path")
+    parser.add_argument("--top-weights", type=int, default=12, help="Number of largest learned weights to print/store")
     return parser
 
 
@@ -114,6 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     metrics["output_model"] = str(args.out)
     metrics["agent_name"] = agent.name
     metrics["learning_rate"] = agent.learning_rate
+    metrics["top_weights"] = agent.top_weights(limit=max(0, args.top_weights))
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     agent.save(args.out)
@@ -126,8 +131,16 @@ def main(argv: list[str] | None = None) -> int:
         "Trained backend agent: "
         f"records={metrics['records']} epochs={metrics['epochs']} updates={metrics['updates']} "
         f"policy_loss={metrics['policy_loss_avg']:.4f} value_loss={metrics['value_loss_avg']:.4f} "
-        f"policy_weights={metrics['policy_weight_count']} value_weights={metrics['value_weight_count']}"
+        f"policy_weights={metrics['policy_weight_count']} value_weights={metrics['value_weight_count']} "
+        f"feature_schema=v{metrics['feature_schema_version']}"
     )
+    if args.top_weights > 0:
+        policy_top = metrics["top_weights"]["policy"][: min(5, args.top_weights)]
+        value_top = metrics["top_weights"]["value"][: min(5, args.top_weights)]
+        if policy_top:
+            print("Top policy weights: " + ", ".join(f"{row['feature']}={row['weight']:.4f}" for row in policy_top))
+        if value_top:
+            print("Top value weights: " + ", ".join(f"{row['feature']}={row['weight']:.4f}" for row in value_top))
     print(f"Wrote model to {args.out}")
     return 0
 

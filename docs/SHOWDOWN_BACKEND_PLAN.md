@@ -102,7 +102,12 @@ It should not care whether the physics came from our Python simulator or a Node/
 - [x] Add backend self-play recorder that emits JSONL decision samples.
 - [x] Add backend-neutral feature extraction for recorded summaries.
 - [x] Preserve move metadata in backend actions, JSONL records, and action features.
+- [x] Expose active Pokémon types in Python and Showdown summaries.
+- [x] Add STAB and type-effectiveness action features.
+- [x] Add switch target hazard and matchup features.
+- [x] Add rough damage-estimate action features.
 - [x] Add trainer that consumes backend JSONL records.
+- [x] Add trainer/evaluator diagnostics for feature schema, top weights, ranked actions, and action traces.
 - [ ] Decide how much of training can become backend-neutral versus Python-feature-dependent.
 
 
@@ -114,8 +119,14 @@ It should not care whether the physics came from our Python simulator or a Node/
 - [x] Add a trainer that consumes JSONL records before trying to merge the path into `training.py`.
 - [x] Add a backend evaluation harness for random, trained-agent, and MCTS policies.
 - [x] Add first-pass move metadata features.
-- [ ] Add material-greedy opponent policy.
-- [ ] Add type-effectiveness, STAB, and rough damage-estimate features.
+- [x] Add STAB and type-effectiveness features.
+- [x] Add first-pass switch target hazard/matchup features.
+- [x] Add rough damage-estimate features.
+- [x] Add action-ranking explanations and traceable evaluation reports.
+- [x] Add material/damage-greedy opponent policy.
+- [x] Add raw replay-log export for self-play and evaluation games.
+- [x] Add one-command backend experiment runner for self-play, training, evaluation reports, and optional replay logs.
+- [ ] Add local HTML/client replay viewing for saved Showdown protocol logs.
 
 ## Do not do
 

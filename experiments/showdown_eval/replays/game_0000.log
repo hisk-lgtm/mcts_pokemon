@@ -1,0 +1,61 @@
+|t:|1780981702
+|gametype|singles
+|player|p1|p1||
+|player|p2|p2||
+|gen|5
+|tier|[Gen 5] OU
+|rule|HP Percentage Mod: HP is shown in percentages
+|rule|Endless Battle Clause: Forcing endless battles is banned
+|rule|Species Clause: Limit one of each PokÃ©mon
+|rule|OHKO Clause: OHKO moves are banned
+|rule|Evasion Items Clause: Evasion items are banned
+|rule|Evasion Moves Clause: Evasion moves are banned
+|rule|Evasion Abilities Clause: Evasion abilities are banned
+|rule|Sleep Moves Clause: Sleep-inducing moves are banned
+|rule|Baton Pass Stat Clause: No Baton Passer may have a way to boost its stats
+|clearpoke
+|poke|p1|Tyranitar, L50, M|item
+|poke|p2|Dragonite, L50, M|item
+|teampreview
+|
+|t:|1780981703
+|teamsize|p1|1
+|teamsize|p2|1
+|start
+|split|p1
+|switch|p1a: Tyranitar|Tyranitar, L50, M|176/176
+|switch|p1a: Tyranitar|Tyranitar, L50, M|100/100
+|split|p2
+|switch|p2a: Dragonite|Dragonite, L50, M|167/167
+|switch|p2a: Dragonite|Dragonite, L50, M|100/100
+|-weather|Sandstorm|[from] ability: Sand Stream|[of] p1a: Tyranitar
+|turn|1
+|
+|t:|1780981703
+|move|p2a: Dragonite|Dragon Claw|p1a: Tyranitar
+|split|p1
+|-damage|p1a: Tyranitar|101/176
+|-damage|p1a: Tyranitar|58/100
+|move|p1a: Tyranitar|Stone Edge|p2a: Dragonite|[miss]
+|-miss|p1a: Tyranitar|p2a: Dragonite
+|
+|-weather|Sandstorm|[upkeep]
+|split|p2
+|-damage|p2a: Dragonite|157/167|[from] Sandstorm
+|-damage|p2a: Dragonite|95/100|[from] Sandstorm
+|upkeep
+|turn|2
+|
+|t:|1780981703
+|move|p2a: Dragonite|Dragon Claw|p1a: Tyranitar
+|split|p1
+|-damage|p1a: Tyranitar|25/176
+|-damage|p1a: Tyranitar|15/100
+|move|p1a: Tyranitar|Stone Edge|p2a: Dragonite
+|-supereffective|p2a: Dragonite
+|split|p2
+|-damage|p2a: Dragonite|0 fnt
+|-damage|p2a: Dragonite|0 fnt
+|faint|p2a: Dragonite
+|
+|win|p1

@@ -1,0 +1,7 @@
+>start {"formatid":"gen5ou","seed":"3,0,7040,15547"}
+>player p1 {"name":"p1","team":"Tyranitar||ChoiceBand|SandStream|Crunch,StoneEdge,Superpower,Earthquake|Adamant|4,252,,,,252||||50|"}
+>player p2 {"name":"p2","team":"Dragonite||LumBerry|Multiscale|DragonDance,DragonClaw,FirePunch,ExtremeSpeed|Adamant|4,252,,,,252||||50|"}
+>p1 team 1
+>p2 team 1
+>p1 move stoneedge
+>p2 move dragonclaw

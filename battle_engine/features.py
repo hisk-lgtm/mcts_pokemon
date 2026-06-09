@@ -112,10 +112,19 @@ def action_label(state: BattleState, player: int, action: Action) -> str:
 
 
 def state_summary(state: BattleState) -> dict:
+    from .data import SPECIES
+
     def side_summary(team):
         active = team.active_mon()
+        species_data = SPECIES.get(active.species)
         return {
             "active": active.species,
+            "types": list(species_data.types) if species_data is not None else [],
+            "level": active.set.level,
+            "stats": dict(active.stats),
+            "boosts": dict(active.boosts),
+            "ability": active.ability,
+            "item": active.item,
             "hp": active.hp,
             "max_hp": active.max_hp,
             "status": active.status,

@@ -4,7 +4,7 @@ from typing import Any
 
 from .model import Action
 
-FEATURE_SCHEMA_VERSION = 2
+FEATURE_SCHEMA_VERSION = 5
 TEAM_SIZE = 6
 
 _STATUS_KEYS = {
@@ -105,6 +105,8 @@ STATE_FEATURE_NAMES = (
     "opp_status_sleep",
     "own_status_freeze",
     "opp_status_freeze",
+    *tuple(f"own_type_{move_type}" for move_type in _MOVE_TYPES),
+    *tuple(f"opp_type_{move_type}" for move_type in _MOVE_TYPES),
 )
 
 ACTION_FEATURE_NAMES = STATE_FEATURE_NAMES + (
@@ -127,10 +129,39 @@ ACTION_FEATURE_NAMES = STATE_FEATURE_NAMES + (
     "move_contact",
     "move_type_known",
     *tuple(f"move_type_{move_type}" for move_type in _MOVE_TYPES),
+    "move_stab",
+    "move_effectiveness",
+    "move_super_effective",
+    "move_resisted",
+    "move_immune",
+    "move_neutral",
+    "move_effective_power",
+    "move_damage_estimate",
+    "move_expected_damage",
+    "move_can_ko",
+    "move_expected_can_ko",
+    "move_2hko",
+    "move_3hko",
+    "move_overkill",
+    "move_damage_accuracy_discount",
     "move_when_opp_low_hp",
     "move_when_own_low_hp",
     "switch_target_hp",
     "switch_target_statused",
+    *tuple(f"switch_target_type_{move_type}" for move_type in _MOVE_TYPES),
+    "switch_hazard_damage",
+    "switch_hp_after_hazards",
+    "switch_likely_faints_to_hazards",
+    "switch_stealth_rock_damage",
+    "switch_spikes_damage",
+    "switch_target_rock_weak",
+    "switch_target_rock_resist",
+    "switch_target_rock_immune",
+    "switch_vs_opp_stab_max_effectiveness",
+    "switch_vs_opp_stab_avg_effectiveness",
+    "switch_resists_opp_stab",
+    "switch_weak_to_opp_stab",
+    "switch_immune_to_opp_stab",
     "switch_when_own_low_hp",
     "switch_when_opp_low_hp",
     "switch_with_own_hazards",
@@ -292,6 +323,50 @@ def _active_status(side: dict[str, Any]) -> Any:
     return _active_mon(side).get("status")
 
 
+def _active_level(side: dict[str, Any]) -> float:
+    mon = _active_mon(side)
+    return max(1.0, _number(mon.get("level"), 50.0))
+
+
+def _active_stats(side: dict[str, Any]) -> dict[str, float]:
+    mon = _active_mon(side)
+    raw = mon.get("stats") or side.get("stats") or {}
+    if not isinstance(raw, dict):
+        raw = {}
+    return {
+        "atk": max(1.0, _number(raw.get("atk"), 100.0)),
+        "def": max(1.0, _number(raw.get("def"), 100.0)),
+        "spa": max(1.0, _number(raw.get("spa"), 100.0)),
+        "spd": max(1.0, _number(raw.get("spd"), 100.0)),
+    }
+
+
+def _active_boosts(side: dict[str, Any]) -> dict[str, float]:
+    mon = _active_mon(side)
+    raw = mon.get("boosts") or side.get("boosts") or {}
+    if not isinstance(raw, dict):
+        raw = {}
+    return {key: max(-6.0, min(6.0, _number(raw.get(key), 0.0))) for key in ("atk", "def", "spa", "spd")}
+
+
+def _boost_multiplier(stage: float) -> float:
+    if stage >= 0:
+        return (2.0 + stage) / 2.0
+    return 2.0 / (2.0 - stage)
+
+
+def _active_max_hp(side: dict[str, Any]) -> float:
+    mon = _active_mon(side)
+    max_hp = _number(mon.get("max_hp"), 0.0)
+    if max_hp > 0:
+        return max_hp
+    hp = _number(mon.get("hp"), 0.0)
+    fraction = _active_hp_fraction(side)
+    if hp > 0 and fraction > 0:
+        return hp / fraction
+    return 100.0
+
+
 def _needs_replacement(side: dict[str, Any]) -> float:
     return _flag(side.get("needs_replacement", False))
 
@@ -315,6 +390,8 @@ def backend_state_features(summary: dict[str, Any], player: int) -> dict[str, fl
     opp_hazards = _hazards(_conditions(opp))
     own_status = _status_features(_active_status(own))
     opp_status = _status_features(_active_status(opp))
+    own_types = _type_flags(_active_types(own))
+    opp_types = _type_flags(_active_types(opp))
     weather = _normalize_weather(summary.get("weather"))
     terrain = _normalize_terrain(summary.get("terrain"))
 
@@ -357,6 +434,10 @@ def backend_state_features(summary: dict[str, Any], player: int) -> dict[str, fl
         "own_status_freeze": own_status["freeze"],
         "opp_status_freeze": opp_status["freeze"],
     }
+    for type_name, value in own_types.items():
+        values[f"own_type_{type_name}"] = value
+    for type_name, value in opp_types.items():
+        values[f"opp_type_{type_name}"] = value
     return {name: float(values[name]) for name in STATE_FEATURE_NAMES}
 
 
@@ -410,6 +491,184 @@ def _move_type_features(move_type: Any) -> dict[str, float]:
     return {move_type: 1.0 if normalized == move_type else 0.0 for move_type in _MOVE_TYPES}
 
 
+def _type_list(value: Any) -> list[str]:
+    if isinstance(value, str):
+        raw_values = [value]
+    elif isinstance(value, (list, tuple, set)):
+        raw_values = list(value)
+    else:
+        raw_values = []
+
+    normalized: list[str] = []
+    for raw in raw_values:
+        text = _normalize_text(raw)
+        if text in _MOVE_TYPES and text not in normalized:
+            normalized.append(text)
+    return normalized
+
+
+def _active_types(side: dict[str, Any]) -> list[str]:
+    mon = _active_mon(side)
+    types = _type_list(mon.get("types"))
+    if types:
+        return types
+    return _type_list(side.get("types"))
+
+
+def _type_flags(types: list[str]) -> dict[str, float]:
+    present = set(types)
+    return {move_type: 1.0 if move_type in present else 0.0 for move_type in _MOVE_TYPES}
+
+
+def _title_type(move_type: str) -> str:
+    return move_type[:1].upper() + move_type[1:]
+
+
+def _type_effectiveness(move_type: str | None, defender_types: list[str]) -> float:
+    if move_type is None or not defender_types:
+        return 1.0
+    try:
+        from .data import effectiveness
+
+        return float(effectiveness(_title_type(move_type), tuple(_title_type(t) for t in defender_types)))
+    except Exception:
+        return 1.0
+
+
+def _weather_damage_multiplier(weather: str | None, move_type: str | None) -> float:
+    if weather == "rain" and move_type == "water":
+        return 1.5
+    if weather == "rain" and move_type == "fire":
+        return 0.5
+    if weather == "sun" and move_type == "fire":
+        return 1.5
+    if weather == "sun" and move_type == "water":
+        return 0.5
+    return 1.0
+
+
+def _rough_damage_features(
+    summary: dict[str, Any],
+    player: int,
+    metadata: dict[str, Any],
+    move_type: str | None,
+    category: dict[str, float],
+    base_power_scaled: float,
+    effectiveness: float,
+    stab: float,
+    accuracy: float,
+    target_hp_fraction: float,
+) -> dict[str, float]:
+    """Return deliberately rough damage features for policy learning.
+
+    This is not a replacement for Showdown damage. It is a compact, backend-neutral
+    estimate using move power, STAB, type effectiveness, weather, visible active
+    stats, boosts, and current target HP. Missing stats fall back to neutral 100s.
+    """
+    raw_power = _number(metadata.get("base_power", metadata.get("power")), 0.0)
+    if raw_power <= 0 or move_type is None or category.get("status", 0.0):
+        return {
+            "move_damage_estimate": 0.0,
+            "move_expected_damage": 0.0,
+            "move_can_ko": 0.0,
+            "move_expected_can_ko": 0.0,
+            "move_2hko": 0.0,
+            "move_3hko": 0.0,
+            "move_overkill": 0.0,
+            "move_damage_accuracy_discount": 0.0,
+        }
+
+    own = _side(summary, player)
+    opp = _side(summary, 3 - player)
+    own_stats = _active_stats(own)
+    opp_stats = _active_stats(opp)
+    own_boosts = _active_boosts(own)
+    opp_boosts = _active_boosts(opp)
+
+    if category.get("special", 0.0):
+        attack = own_stats["spa"] * _boost_multiplier(own_boosts["spa"])
+        defense = opp_stats["spd"] * _boost_multiplier(opp_boosts["spd"])
+    else:
+        attack = own_stats["atk"] * _boost_multiplier(own_boosts["atk"])
+        defense = opp_stats["def"] * _boost_multiplier(opp_boosts["def"])
+        if _normalize_status(_active_status(own)) == "burn":
+            attack *= 0.5
+
+    level = _active_level(own)
+    target_max_hp = max(1.0, _active_max_hp(opp))
+    weather = _normalize_weather(summary.get("weather"))
+    modifier = (1.5 if stab else 1.0) * effectiveness * _weather_damage_multiplier(weather, move_type)
+
+    # Use the midpoint of the normal random damage range. This intentionally
+    # ignores items, abilities, crits, screens, spread penalties, and many other
+    # mechanics until those facts are exposed in summaries.
+    base_damage = (((((2.0 * level / 5.0) + 2.0) * raw_power * attack / max(1.0, defense)) / 50.0) + 2.0)
+    damage_fraction = max(0.0, base_damage * modifier * 0.925 / target_max_hp)
+    expected_fraction = damage_fraction * max(0.0, min(1.0, accuracy))
+    target_hp = max(0.0, min(1.0, target_hp_fraction))
+
+    return {
+        "move_damage_estimate": min(2.0, damage_fraction),
+        "move_expected_damage": min(2.0, expected_fraction),
+        "move_can_ko": 1.0 if target_hp > 0.0 and damage_fraction >= target_hp else 0.0,
+        "move_expected_can_ko": 1.0 if target_hp > 0.0 and expected_fraction >= target_hp else 0.0,
+        "move_2hko": 1.0 if target_hp > 0.0 and damage_fraction * 2.0 >= target_hp else 0.0,
+        "move_3hko": 1.0 if target_hp > 0.0 and damage_fraction * 3.0 >= target_hp else 0.0,
+        "move_overkill": max(0.0, min(1.0, damage_fraction - target_hp)),
+        "move_damage_accuracy_discount": max(0.0, min(2.0, damage_fraction - expected_fraction)),
+    }
+
+
+def _spikes_damage_fraction(layers: float, target_types: list[str]) -> float:
+    # Flying-types are treated as ungrounded in this first-pass backend feature
+    # layer. This intentionally ignores ability/item edge cases such as Levitate,
+    # Air Balloon, Iron Ball, and Gravity until the backend summaries expose them.
+    if "flying" in target_types:
+        return 0.0
+    if layers >= 1.0:
+        return 0.25
+    if layers >= (2.0 / 3.0):
+        return 1.0 / 6.0
+    if layers > 0.0:
+        return 0.125
+    return 0.0
+
+
+def _switch_hazard_features(own_hazards: dict[str, float], target_types: list[str], target_hp: float) -> dict[str, float]:
+    rock_effectiveness = _type_effectiveness("rock", target_types) if target_types else 1.0
+    stealth_rock_damage = 0.125 * rock_effectiveness if own_hazards.get("stealth_rock", 0.0) else 0.0
+    spikes_damage = _spikes_damage_fraction(own_hazards.get("spikes", 0.0), target_types)
+    total = max(0.0, min(1.0, stealth_rock_damage + spikes_damage))
+    hp_after = max(0.0, target_hp - total)
+    return {
+        "switch_hazard_damage": total,
+        "switch_hp_after_hazards": hp_after,
+        "switch_likely_faints_to_hazards": 1.0 if target_hp > 0.0 and total >= target_hp else 0.0,
+        "switch_stealth_rock_damage": max(0.0, min(1.0, stealth_rock_damage)),
+        "switch_spikes_damage": max(0.0, min(1.0, spikes_damage)),
+        "switch_target_rock_weak": 1.0 if rock_effectiveness > 1.0 else 0.0,
+        "switch_target_rock_resist": 1.0 if 0.0 < rock_effectiveness < 1.0 else 0.0,
+        "switch_target_rock_immune": 1.0 if rock_effectiveness == 0.0 else 0.0,
+    }
+
+
+def _switch_stab_matchup_features(opp_types: list[str], target_types: list[str]) -> dict[str, float]:
+    if not opp_types or not target_types:
+        max_effectiveness = 1.0
+        avg_effectiveness = 1.0
+    else:
+        values = [_type_effectiveness(opp_type, target_types) for opp_type in opp_types]
+        max_effectiveness = max(values)
+        avg_effectiveness = sum(values) / len(values)
+    return {
+        "switch_vs_opp_stab_max_effectiveness": max_effectiveness,
+        "switch_vs_opp_stab_avg_effectiveness": avg_effectiveness,
+        "switch_resists_opp_stab": 1.0 if max_effectiveness < 1.0 else 0.0,
+        "switch_weak_to_opp_stab": 1.0 if max_effectiveness > 1.0 else 0.0,
+        "switch_immune_to_opp_stab": 1.0 if max_effectiveness == 0.0 else 0.0,
+    }
+
+
 def backend_action_features(summary: dict[str, Any], player: int, action: Action | dict[str, Any]) -> dict[str, float]:
     """Return backend-neutral policy features for one legal action."""
     parsed = action_from_payload(action)
@@ -421,20 +680,55 @@ def backend_action_features(summary: dict[str, Any], player: int, action: Action
     opp_hp = features["opp_active_hp"]
     own_hazards_any = features["own_hazards_any"]
     own_status_any = features["own_status_any"]
+    own_hazards = _hazards(_conditions(_side(summary, player)))
     category = _category_features(metadata.get("category"))
-    move_type = _move_type_features(metadata.get("type"))
+    raw_move_type = _normalize_text(metadata.get("type"))
+    move_type_name = raw_move_type if raw_move_type in _MOVE_TYPES else None
+    move_type = _move_type_features(move_type_name)
+    own_types = _active_types(_side(summary, player))
+    opp_types = _active_types(_side(summary, 3 - player))
     base_power = _scaled_base_power(metadata.get("base_power", metadata.get("power")))
+    has_damaging_power = parsed.kind == "move" and base_power > 0
+    move_effectiveness = _type_effectiveness(move_type_name, opp_types) if has_damaging_power else 0.0
+    move_stab = 1.0 if parsed.kind == "move" and move_type_name in own_types and has_damaging_power else 0.0
+    move_accuracy = _scaled_accuracy(metadata.get("accuracy")) if parsed.kind == "move" else 0.0
+    rough_damage = _rough_damage_features(
+        summary,
+        player,
+        metadata,
+        move_type_name,
+        category,
+        base_power,
+        move_effectiveness,
+        move_stab,
+        move_accuracy,
+        opp_hp,
+    ) if parsed.kind == "move" else {
+        "move_damage_estimate": 0.0,
+        "move_expected_damage": 0.0,
+        "move_can_ko": 0.0,
+        "move_expected_can_ko": 0.0,
+        "move_2hko": 0.0,
+        "move_3hko": 0.0,
+        "move_overkill": 0.0,
+        "move_damage_accuracy_discount": 0.0,
+    }
     switch_target_hp = metadata.get("hp_fraction")
     if switch_target_hp is None:
         switch_target_hp = _safe_fraction(metadata.get("hp"), metadata.get("max_hp"))
+    switch_target_hp = max(0.0, min(1.0, _number(switch_target_hp)))
     target_status = _status_features(metadata.get("status"))
+    switch_target_types = _type_list(metadata.get("types"))
+    switch_target_type_flags = _type_flags(switch_target_types)
+    switch_hazards = _switch_hazard_features(own_hazards, switch_target_types, switch_target_hp)
+    switch_stab_matchup = _switch_stab_matchup_features(opp_types, switch_target_types)
 
     values = {
         "action_is_move": 1.0 if parsed.kind == "move" else 0.0,
         "action_is_switch": 1.0 if parsed.kind == "switch" else 0.0,
         "action_index_norm": min(action_index, 5) / 5,
         "move_base_power": base_power if parsed.kind == "move" else 0.0,
-        "move_accuracy": _scaled_accuracy(metadata.get("accuracy")) if parsed.kind == "move" else 0.0,
+        "move_accuracy": move_accuracy,
         "move_priority": _scaled_priority(metadata.get("priority")) if parsed.kind == "move" else 0.0,
         "move_has_power": 1.0 if parsed.kind == "move" and base_power > 0 else 0.0,
         "move_is_physical": category["physical"] if parsed.kind == "move" else 0.0,
@@ -442,10 +736,38 @@ def backend_action_features(summary: dict[str, Any], player: int, action: Action
         "move_is_status": category["status"] if parsed.kind == "move" else 0.0,
         "move_contact": _flag(metadata.get("contact")) if parsed.kind == "move" else 0.0,
         "move_type_known": 1.0 if parsed.kind == "move" and any(move_type.values()) else 0.0,
+        "move_stab": move_stab,
+        "move_effectiveness": move_effectiveness,
+        "move_super_effective": 1.0 if has_damaging_power and move_effectiveness > 1.0 else 0.0,
+        "move_resisted": 1.0 if has_damaging_power and 0.0 < move_effectiveness < 1.0 else 0.0,
+        "move_immune": 1.0 if has_damaging_power and move_effectiveness == 0.0 else 0.0,
+        "move_neutral": 1.0 if has_damaging_power and move_effectiveness == 1.0 else 0.0,
+        "move_effective_power": min(4.0, base_power * move_effectiveness) if has_damaging_power else 0.0,
+        "move_damage_estimate": rough_damage["move_damage_estimate"],
+        "move_expected_damage": rough_damage["move_expected_damage"],
+        "move_can_ko": rough_damage["move_can_ko"],
+        "move_expected_can_ko": rough_damage["move_expected_can_ko"],
+        "move_2hko": rough_damage["move_2hko"],
+        "move_3hko": rough_damage["move_3hko"],
+        "move_overkill": rough_damage["move_overkill"],
+        "move_damage_accuracy_discount": rough_damage["move_damage_accuracy_discount"],
         "move_when_opp_low_hp": 1.0 if parsed.kind == "move" and opp_hp <= 0.25 else 0.0,
         "move_when_own_low_hp": 1.0 if parsed.kind == "move" and own_hp <= 0.25 else 0.0,
-        "switch_target_hp": max(0.0, min(1.0, _number(switch_target_hp))) if parsed.kind == "switch" else 0.0,
+        "switch_target_hp": switch_target_hp if parsed.kind == "switch" else 0.0,
         "switch_target_statused": target_status["any"] if parsed.kind == "switch" else 0.0,
+        "switch_hazard_damage": switch_hazards["switch_hazard_damage"] if parsed.kind == "switch" else 0.0,
+        "switch_hp_after_hazards": switch_hazards["switch_hp_after_hazards"] if parsed.kind == "switch" else 0.0,
+        "switch_likely_faints_to_hazards": switch_hazards["switch_likely_faints_to_hazards"] if parsed.kind == "switch" else 0.0,
+        "switch_stealth_rock_damage": switch_hazards["switch_stealth_rock_damage"] if parsed.kind == "switch" else 0.0,
+        "switch_spikes_damage": switch_hazards["switch_spikes_damage"] if parsed.kind == "switch" else 0.0,
+        "switch_target_rock_weak": switch_hazards["switch_target_rock_weak"] if parsed.kind == "switch" else 0.0,
+        "switch_target_rock_resist": switch_hazards["switch_target_rock_resist"] if parsed.kind == "switch" else 0.0,
+        "switch_target_rock_immune": switch_hazards["switch_target_rock_immune"] if parsed.kind == "switch" else 0.0,
+        "switch_vs_opp_stab_max_effectiveness": switch_stab_matchup["switch_vs_opp_stab_max_effectiveness"] if parsed.kind == "switch" else 0.0,
+        "switch_vs_opp_stab_avg_effectiveness": switch_stab_matchup["switch_vs_opp_stab_avg_effectiveness"] if parsed.kind == "switch" else 0.0,
+        "switch_resists_opp_stab": switch_stab_matchup["switch_resists_opp_stab"] if parsed.kind == "switch" else 0.0,
+        "switch_weak_to_opp_stab": switch_stab_matchup["switch_weak_to_opp_stab"] if parsed.kind == "switch" else 0.0,
+        "switch_immune_to_opp_stab": switch_stab_matchup["switch_immune_to_opp_stab"] if parsed.kind == "switch" else 0.0,
         "switch_when_own_low_hp": 1.0 if parsed.kind == "switch" and own_hp <= 0.25 else 0.0,
         "switch_when_opp_low_hp": 1.0 if parsed.kind == "switch" and opp_hp <= 0.25 else 0.0,
         "switch_with_own_hazards": 1.0 if parsed.kind == "switch" and own_hazards_any else 0.0,
@@ -453,6 +775,8 @@ def backend_action_features(summary: dict[str, Any], player: int, action: Action
     }
     for move_type_name, value in move_type.items():
         values[f"move_type_{move_type_name}"] = value if parsed.kind == "move" else 0.0
+    for type_name, value in switch_target_type_flags.items():
+        values[f"switch_target_type_{type_name}"] = value if parsed.kind == "switch" else 0.0
     for index in range(6):
         values[f"action_index_{index}"] = 1.0 if action_index == index else 0.0
 

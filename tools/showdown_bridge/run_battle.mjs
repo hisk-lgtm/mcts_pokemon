@@ -125,10 +125,40 @@ function safeName(effectOrId) {
   return effectOrId.name || effectOrId.id || String(effectOrId);
 }
 
-function summarizePokemon(mon, active) {
+function pokemonTypes(mon, battle) {
+  try {
+    if (typeof mon.getTypes === 'function') {
+      const types = mon.getTypes();
+      if (Array.isArray(types) && types.length) return types;
+    }
+  } catch {}
+
+  try {
+    const speciesId = mon.species?.id || mon.species || mon.baseSpecies?.id || mon.baseSpecies || mon.name;
+    const species = battle?.dex?.species?.get(speciesId);
+    if (Array.isArray(species?.types)) return species.types;
+  } catch {}
+
+  return [];
+}
+
+function pokemonStats(mon) {
+  const raw = mon.storedStats || mon.baseStoredStats || mon.stats || {};
+  const out = {};
+  for (const stat of ['atk', 'def', 'spa', 'spd', 'spe']) {
+    const value = Number(raw?.[stat]);
+    if (Number.isFinite(value)) out[stat] = value;
+  }
+  return out;
+}
+
+function summarizePokemon(mon, active, battle) {
   return {
     species: safeName(mon.species) || safeName(mon.baseSpecies) || mon.name,
     name: mon.name,
+    types: pokemonTypes(mon, battle),
+    level: mon.level || 100,
+    stats: pokemonStats(mon),
     hp: mon.hp,
     max_hp: mon.maxhp,
     fainted: !!mon.fainted || mon.hp <= 0,
@@ -147,7 +177,7 @@ function summarizePokemon(mon, active) {
   };
 }
 
-function summarizeSide(side) {
+function summarizeSide(side, battle) {
   const activeMon = side.active?.[0] || null;
   const activeIndex = activeMon ? side.pokemon.indexOf(activeMon) : -1;
   return {
@@ -157,7 +187,8 @@ function summarizeSide(side) {
     needs_replacement: !!side.activeRequest?.forceSwitch?.[0],
     alive_count: side.pokemon.filter(mon => !mon.fainted && mon.hp > 0).length,
     side_conditions: Object.fromEntries(Object.keys(side.sideConditions || {}).map(id => [id, true])),
-    mons: side.pokemon.map(mon => summarizePokemon(mon, mon === activeMon)),
+    types: activeMon ? pokemonTypes(activeMon, battle) : [],
+    mons: side.pokemon.map(mon => summarizePokemon(mon, mon === activeMon, battle)),
   };
 }
 
@@ -203,6 +234,14 @@ function moveMetadata(move, battle) {
   };
 }
 
+function speciesTypes(speciesName, battle) {
+  try {
+    const species = battle?.dex?.species?.get(speciesName);
+    if (Array.isArray(species?.types)) return species.types;
+  } catch {}
+  return [];
+}
+
 function legalActionsFromRequest(side, battle) {
   const request = side.activeRequest;
   if (!request) return [];
@@ -227,6 +266,7 @@ function legalActionsFromRequest(side, battle) {
           kind: 'switch',
           index,
           species,
+          types: speciesTypes(species, battle),
           hp: parsed.hp,
           max_hp: parsed.max_hp,
           hp_fraction: parsed.max_hp ? parsed.hp / parsed.max_hp : null,
@@ -251,8 +291,8 @@ function stateSummary(battle, format, seed, historyLength) {
     weather: battle.field?.weather || null,
     terrain: battle.field?.terrain || null,
     history_length: historyLength,
-    p1: summarizeSide(battle.sides[0]),
-    p2: summarizeSide(battle.sides[1]),
+    p1: summarizeSide(battle.sides[0], battle),
+    p2: summarizeSide(battle.sides[1], battle),
   };
 }
 

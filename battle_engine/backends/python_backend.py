@@ -34,6 +34,13 @@ def _move_metadata(move_name: str) -> dict[str, Any]:
     }
 
 
+def _pokemon_types(species: str) -> list[str]:
+    from ..data import SPECIES
+
+    data = SPECIES.get(species)
+    return list(data.types) if data is not None else []
+
+
 def _switch_metadata(state: BattleState, player: int, index: int) -> dict[str, Any]:
     team = state.p1 if player == 1 else state.p2
     if index < 0 or index >= len(team.mons):
@@ -41,6 +48,12 @@ def _switch_metadata(state: BattleState, player: int, index: int) -> dict[str, A
     mon = team.mons[index]
     return {
         "species": mon.species,
+        "types": _pokemon_types(mon.species),
+        "level": mon.set.level,
+        "stats": dict(mon.stats),
+        "boosts": dict(mon.boosts),
+        "ability": mon.ability,
+        "item": mon.item,
         "hp": mon.hp,
         "max_hp": mon.max_hp,
         "hp_fraction": mon.hp / mon.max_hp if mon.max_hp > 0 else 0.0,

@@ -546,6 +546,12 @@ Local Showdown backend smoke run:
 python examples/backend_selfplay.py --backend showdown --showdown-root /path/to/pokemon-showdown --teams single --games 1 --turns 1 --sims 1 --depth 0 --out data/showdown_selfplay.jsonl
 ```
 
+Optionally save one raw battle log and metadata JSON per self-play game:
+
+```bash
+python examples/backend_selfplay.py --backend showdown --showdown-root /path/to/pokemon-showdown --teams single --games 1 --turns 1 --sims 1 --depth 0 --out data/showdown_selfplay.jsonl --save-replay-logs experiments/showdown_smoke/replays
+```
+
 Use low `--sims`, `--depth`, and `--turns` for Showdown until the bridge moves from stateless replay calls to a persistent worker.
 
 Inspect the recorded backend feature vectors:
@@ -564,6 +570,13 @@ Evaluate the saved backend agent against simple baselines:
 
 ```bash
 python examples/evaluate_backend_agent.py --backend python --agent training_logs/backend_agent.json --teams single --games 20 --opponent random
+python examples/evaluate_backend_agent.py --backend python --agent training_logs/backend_agent.json --teams single --games 20 --opponent damage
+```
+
+When you want to see what the trained policy actually clicked, write an evaluation report with action traces and feature contributions:
+
+```bash
+python examples/evaluate_backend_agent.py --backend python --agent training_logs/backend_agent.json --teams single --games 3 --opponent random --trace-actions 12 --explain-top 5 --out training_logs/backend_eval_trace.json
 ```
 
 Local Showdown evaluation should stay tiny until the bridge has a persistent worker:
@@ -572,4 +585,43 @@ Local Showdown evaluation should stay tiny until the bridge has a persistent wor
 python examples/evaluate_backend_agent.py --backend showdown --showdown-root /path/to/pokemon-showdown --agent training_logs/backend_agent.json --teams single --games 3 --turns 5 --opponent first
 ```
 
-This trainer consumes `state_summary`, `legal_actions`, `chosen_action`, and `value_target` records. Legal move actions now preserve first-pass metadata when the backend can provide it: move id/name, type, category, base power, accuracy, priority, and contact. The feature extractor turns that into policy features such as `move_type_rock`, `move_is_physical`, and `move_base_power`, which is the first step beyond raw move-slot imitation. It does not replace the older Python `BattleState` training path yet. The evaluator closes the first backend-training loop: generate JSONL, train a model, load it, act through a backend, and report wins/losses/unresolved games.
+Evaluation can also save one raw battle log and metadata JSON per game:
+
+```bash
+python examples/evaluate_backend_agent.py --backend showdown --showdown-root /path/to/pokemon-showdown --agent training_logs/backend_agent.json --teams single --games 3 --turns 5 --opponent damage --save-replay-logs experiments/showdown_eval/replays --out experiments/showdown_eval/report.json
+```
+
+The saved `.log` files are local raw backend battle logs. With `ShowdownBattleBackend`, they contain Showdown battle protocol lines from the local simulator. They are not hosted `pokemonshowdown.com` replay URLs yet; a later viewer/export step can consume them.
+
+
+### One-command backend experiments
+
+Once the separate self-play/train/evaluate commands work, use the experiment runner to keep runs reproducible. It writes a complete experiment folder with config, JSONL data, trained agent, metrics, evaluation reports, and optional replay logs:
+
+```bash
+python examples/run_backend_experiment.py --backend python --teams single --games 5 --turns 5 --sims 2 --depth 1 --epochs 3 --eval-opponents first random damage --out-dir experiments/python_single_001
+```
+
+Tiny local Showdown smoke run:
+
+```bash
+python examples/run_backend_experiment.py --backend showdown --showdown-root /path/to/pokemon-showdown --teams single --games 1 --turns 1 --sims 1 --depth 0 --epochs 1 --eval-games 1 --eval-turns 1 --eval-opponents first damage --save-replay-logs --out-dir experiments/showdown_smoke_001
+```
+
+Each experiment directory contains:
+
+```text
+config.json
+selfplay.jsonl
+selfplay_summary.json
+agent.json
+train_metrics.json
+eval_<opponent>.json
+summary.json
+summary.txt
+replays/                 # only when --save-replay-logs is set
+```
+
+This is the preferred workflow for comparing feature/schema changes. The older individual commands are still useful for debugging one stage at a time.
+
+This trainer consumes `state_summary`, `legal_actions`, `chosen_action`, and `value_target` records. Legal move actions now preserve first-pass metadata when the backend can provide it: move id/name, type, category, base power, accuracy, priority, and contact. Backend summaries also expose active Pokémon types when available. The feature extractor turns that into policy features such as `move_type_rock`, `move_is_physical`, `move_base_power`, `move_stab`, `move_effectiveness`, and `move_super_effective`, which is the first real step beyond raw move-slot imitation. It also adds rough damage-estimate features such as `move_damage_estimate`, `move_expected_damage`, `move_can_ko`, and `move_2hko`; these are deliberately approximate and are not meant to replace Showdown damage. Switch actions also preserve target species/types/HP/status when available, allowing features such as `switch_target_type_steel`, `switch_hazard_damage`, `switch_hp_after_hazards`, and `switch_weak_to_opp_stab`. Training metrics now include the feature schema version and largest learned policy/value weights, while evaluation reports can optionally include ranked legal actions and the top feature contributions behind the agent's choices. The evaluator supports `first`, `random`, `damage`, `mcts`, and `agent` opponents. The `damage` baseline is a deterministic greedy policy over the same backend damage/switch features, giving a stronger sanity check than random without paying for MCTS. It does not replace the older Python `BattleState` training path yet. The evaluator closes the first backend-training loop: generate JSONL, train a model, load it, act through a backend, and report wins/losses/unresolved games.
