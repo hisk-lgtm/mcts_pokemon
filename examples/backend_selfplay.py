@@ -8,23 +8,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import argparse
 import json
 import random
-from dataclasses import dataclass
 from typing import Any, TextIO
 
 from battle_engine.backends import BackendUnavailableError, BattleBackend, create_backend
 from battle_engine.replay_logs import new_replay_capture, update_replay_capture, write_replay_files
 from battle_engine.mcts import MCTSAgent, MCTSConfig, MCTSResult
 from battle_engine.model import Action, PokemonSet
-from battle_engine.sample_sets import TEAM_BALANCE_A, TEAM_BALANCE_B, TYRANITAR_CB, DRAGONITE_DD
-from battle_engine.team_builder import default_compendium_path, load_set_pool, random_team
+from examples.team_scenarios import TEAM_MODE_CHOICES, build_teams, team_species
 
 SCHEMA_VERSION = 1
-
-
-@dataclass(frozen=True)
-class GameTeams:
-    team1: list[PokemonSet]
-    team2: list[PokemonSet]
 
 
 def action_to_payload(action: Action) -> dict[str, Any]:
@@ -51,21 +43,6 @@ def value_target(final_winner: int | None, player: int) -> float:
     if final_winner is None or final_winner == 0:
         return 0.0
     return 1.0 if final_winner == player else -1.0
-
-
-def _team_species(team: list[PokemonSet]) -> list[str]:
-    return [mon.species for mon in team]
-
-
-def _build_teams(mode: str, rng: random.Random) -> GameTeams:
-    if mode == "single":
-        return GameTeams([TYRANITAR_CB], [DRAGONITE_DD])
-    if mode == "balance":
-        return GameTeams(list(TEAM_BALANCE_A), list(TEAM_BALANCE_B))
-    if mode == "random":
-        pool = load_set_pool(default_compendium_path(), expand_variants=True, supported_only=True)
-        return GameTeams(random_team(pool, rng=rng), random_team(pool, rng=rng))
-    raise ValueError(f"Unknown team mode: {mode}")
 
 
 def _handle_replacements(
@@ -108,6 +85,7 @@ def _decision_record(
     result: MCTSResult,
     team1: list[PokemonSet],
     team2: list[PokemonSet],
+    team_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
@@ -118,8 +96,9 @@ def _decision_record(
         "turn_index": turn_index,
         "simulator_turn": state_summary.get("turn"),
         "player": player,
-        "team1_species": _team_species(team1),
-        "team2_species": _team_species(team2),
+        "team1_species": team_species(team1),
+        "team2_species": team_species(team2),
+        "team_metadata": team_metadata or {},
         "state_summary": state_summary,
         "legal_actions": [action_to_payload(action) for action in legal_actions],
         "chosen_action": action_to_payload(result.action),
@@ -146,6 +125,7 @@ def play_backend_game(
     timeout: int = 30,
     replay_log_dir: str | Path | None = None,
     teams_mode: str | None = None,
+    team_metadata: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     backend = create_backend(
         backend_name,  # type: ignore[arg-type]
@@ -190,6 +170,7 @@ def play_backend_game(
                 result=p1_result,
                 team1=team1,
                 team2=team2,
+                team_metadata=team_metadata,
             )
         )
         records.append(
@@ -204,6 +185,7 @@ def play_backend_game(
                 result=p2_result,
                 team1=team1,
                 team2=team2,
+                team_metadata=team_metadata,
             )
         )
 
@@ -244,8 +226,9 @@ def play_backend_game(
                 "mcts_sims": sims,
                 "mcts_depth": depth,
                 "final_winner": final_winner,
-                "team1_species": _team_species(team1),
-                "team2_species": _team_species(team2),
+                "team1_species": team_species(team1),
+                "team2_species": team_species(team2),
+                "team_metadata": team_metadata or {},
                 "final_summary": backend.state_summary(),
             },
         )
@@ -264,7 +247,7 @@ def run_selfplay(args: argparse.Namespace) -> int:
     for game_id in range(args.games):
         game_seed = args.seed + game_id
         game_rng = random.Random(game_seed)
-        teams = _build_teams(args.teams, game_rng)
+        teams = build_teams(args.teams, game_rng, game_id=game_id)
         records = play_backend_game(
             backend_name=args.backend,
             team1=teams.team1,
@@ -281,6 +264,7 @@ def run_selfplay(args: argparse.Namespace) -> int:
             timeout=args.timeout,
             replay_log_dir=args.save_replay_logs,
             teams_mode=args.teams,
+            team_metadata=teams.metadata(),
         )
         all_records.extend(records)
 
@@ -300,7 +284,7 @@ def main() -> None:
         description="Run backend self-play and write training-shaped decision records as JSONL."
     )
     parser.add_argument("--backend", choices=["python", "showdown"], default="python")
-    parser.add_argument("--teams", choices=["random", "single", "balance"], default="random")
+    parser.add_argument("--teams", choices=TEAM_MODE_CHOICES, default="random")
     parser.add_argument("--games", type=int, default=1)
     parser.add_argument("--turns", type=int, default=20)
     parser.add_argument("--sims", type=int, default=16)

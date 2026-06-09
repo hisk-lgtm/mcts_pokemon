@@ -20,17 +20,10 @@ from battle_engine.backend_features import (
 from battle_engine.backends import BackendUnavailableError, BattleBackend, create_backend
 from battle_engine.replay_logs import new_replay_capture, update_replay_capture, write_replay_files
 from battle_engine.mcts import MCTSAgent, MCTSConfig
-from battle_engine.model import Action, PokemonSet
-from battle_engine.sample_sets import TEAM_BALANCE_A, TEAM_BALANCE_B, TYRANITAR_CB, DRAGONITE_DD
-from battle_engine.team_builder import default_compendium_path, load_set_pool, random_team
+from battle_engine.model import Action
+from examples.team_scenarios import TEAM_MODE_CHOICES, build_teams, team_species
 
 PolicyName = Literal["agent", "first", "random", "mcts", "damage"]
-
-
-@dataclass(frozen=True)
-class GameTeams:
-    team1: list[PokemonSet]
-    team2: list[PokemonSet]
 
 
 @dataclass
@@ -53,21 +46,6 @@ class EvaluationConfig:
     trace_actions: int
     explain_top: int
     save_replay_logs: str | None
-
-
-def _team_species(team: list[PokemonSet]) -> list[str]:
-    return [mon.species for mon in team]
-
-
-def _build_teams(mode: str, rng: random.Random) -> GameTeams:
-    if mode == "single":
-        return GameTeams([TYRANITAR_CB], [DRAGONITE_DD])
-    if mode == "balance":
-        return GameTeams(list(TEAM_BALANCE_A), list(TEAM_BALANCE_B))
-    if mode == "random":
-        pool = load_set_pool(default_compendium_path(), expand_variants=True, supported_only=True)
-        return GameTeams(random_team(pool, rng=rng), random_team(pool, rng=rng))
-    raise ValueError(f"Unknown team mode: {mode}")
 
 
 def _policy_for_player(player: int, agent_player: int, opponent: PolicyName) -> PolicyName:
@@ -215,6 +193,7 @@ def _game_result_record(
     replacements: int,
     action_trace: list[dict[str, Any]] | None = None,
     replay_files: dict[str, Any] | None = None,
+    team_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     agent_won = winner == agent_player
     opponent_won = winner in {1, 2} and winner != agent_player
@@ -231,8 +210,9 @@ def _game_result_record(
         "unresolved": unresolved,
         "turns_played": turns_played,
         "replacements": replacements,
-        "team1_species": _team_species(team1),
-        "team2_species": _team_species(team2),
+        "team1_species": team_species(team1),
+        "team2_species": team_species(team2),
+        "team_metadata": team_metadata or {},
         "final_summary": backend.state_summary(),
         "action_trace": action_trace or [],
         "replay_files": replay_files or {},
@@ -281,7 +261,7 @@ def _append_action_trace(
 def play_evaluation_game(config: EvaluationConfig, *, game_id: int, rng: random.Random) -> dict[str, Any]:
     game_seed = config.seed + game_id
     team_rng = random.Random(game_seed)
-    teams = _build_teams(config.teams, team_rng)
+    teams = build_teams(config.teams, team_rng, game_id=game_id)
     backend = create_backend(
         config.backend_name,  # type: ignore[arg-type]
         teams.team1,
@@ -395,8 +375,9 @@ def play_evaluation_game(config: EvaluationConfig, *, game_id: int, rng: random.
                 "opponent": config.opponent,
                 "turn_limit": config.turns,
                 "winner": backend.winner(),
-                "team1_species": _team_species(teams.team1),
-                "team2_species": _team_species(teams.team2),
+                "team1_species": team_species(teams.team1),
+                "team2_species": team_species(teams.team2),
+                "team_metadata": teams.metadata(),
                 "final_summary": backend.state_summary(),
             },
         )
@@ -414,6 +395,7 @@ def play_evaluation_game(config: EvaluationConfig, *, game_id: int, rng: random.
         replacements=replacements,
         action_trace=action_trace,
         replay_files=replay_files,
+        team_metadata=teams.metadata(),
     )
 
 
@@ -498,7 +480,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent-player", type=int, choices=[1, 2], default=1)
     parser.add_argument("--games", type=int, default=20)
     parser.add_argument("--turns", type=int, default=30, help="Turn cap per game; unresolved at cap counts separately")
-    parser.add_argument("--teams", choices=["single", "balance", "random"], default="single")
+    parser.add_argument("--teams", choices=TEAM_MODE_CHOICES, default="single")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--mcts-sims", type=int, default=8, help="Simulations for --opponent mcts")
     parser.add_argument("--mcts-depth", type=int, default=4, help="Rollout depth for --opponent mcts")

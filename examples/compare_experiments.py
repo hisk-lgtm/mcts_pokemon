@@ -92,6 +92,25 @@ def _all_opponents(experiments: list[dict[str, Any]]) -> list[str]:
     return sorted(opponents)
 
 
+def _validation_status(validation: dict[str, Any]) -> bool | None:
+    if "valid" in validation:
+        return bool(validation["valid"])
+    if "ok" in validation:
+        return bool(validation["ok"])
+    return None
+
+
+def _validation_count(validation: dict[str, Any], legacy_key: str, current_key: str) -> int | None:
+    if legacy_key in validation:
+        return _as_int(validation.get(legacy_key))
+    current = validation.get(current_key)
+    if isinstance(current, list):
+        return len(current)
+    if current is None:
+        return None
+    return _as_int(current)
+
+
 def summarize_experiment(exp: dict[str, Any]) -> dict[str, Any]:
     summary = exp["summary"]
     config = summary.get("config", {}) if isinstance(summary.get("config"), dict) else {}
@@ -110,9 +129,11 @@ def summarize_experiment(exp: dict[str, Any]) -> dict[str, Any]:
         "selfplay_sims": config.get("sims"),
         "selfplay_depth": config.get("depth"),
         "records": selfplay.get("records"),
-        "validation_ok": validation.get("ok"),
-        "validation_errors": validation.get("error_count"),
-        "validation_warnings": validation.get("warning_count"),
+        "validation_ok": _validation_status(validation),
+        "validation_errors": _validation_count(validation, "error_count", "errors"),
+        "validation_warnings": _validation_count(validation, "warning_count", "warnings"),
+        "move_metadata_rate": validation.get("move_metadata_rate"),
+        "switch_metadata_rate": validation.get("switch_metadata_rate"),
         "policy_loss_avg": training.get("policy_loss_avg"),
         "value_loss_avg": training.get("value_loss_avg"),
         "updates": training.get("updates"),
@@ -189,8 +210,11 @@ def render_text_report(payload: dict[str, Any]) -> str:
                 str(exp.get("backend") or NUMERIC_NA),
                 str(exp.get("teams") or NUMERIC_NA),
                 str(exp.get("records") if exp.get("records") is not None else NUMERIC_NA),
-                str(exp.get("validation_ok")),
+                str(exp.get("validation_ok") if exp.get("validation_ok") is not None else NUMERIC_NA),
                 str(exp.get("validation_errors") if exp.get("validation_errors") is not None else NUMERIC_NA),
+                str(exp.get("validation_warnings") if exp.get("validation_warnings") is not None else NUMERIC_NA),
+                _pct(exp.get("move_metadata_rate")),
+                _pct(exp.get("switch_metadata_rate")),
                 _float_text(exp.get("policy_loss_avg")),
                 _signed_delta(exp.get("policy_loss_avg"), baseline.get("policy_loss_avg"), digits=4),
                 _float_text(exp.get("value_loss_avg")),
@@ -206,6 +230,9 @@ def render_text_report(payload: dict[str, Any]) -> str:
                 "records",
                 "valid",
                 "errors",
+                "warn",
+                "move_meta",
+                "switch_meta",
                 "policy_loss",
                 "Δpolicy",
                 "value_loss",

@@ -16,8 +16,9 @@ from battle_engine.backend_features import FEATURE_SCHEMA_VERSION
 from battle_engine.backends import BackendUnavailableError
 from battle_engine.backend_jsonl_validation import validate_backend_jsonl
 
-from examples.backend_selfplay import _build_teams, play_backend_game, write_jsonl
+from examples.backend_selfplay import play_backend_game, write_jsonl
 from examples.evaluate_backend_agent import EvaluationConfig, run_evaluation
+from examples.team_scenarios import TEAM_MODE_CHOICES, build_teams
 from examples.train_backend_agent import iter_jsonl, train_records
 
 
@@ -74,7 +75,7 @@ def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[s
     for game_id in range(args.games):
         game_seed = args.seed + game_id
         team_rng = random.Random(game_seed)
-        teams = _build_teams(args.teams, team_rng)
+        teams = build_teams(args.teams, team_rng, game_id=game_id)
         records.extend(
             play_backend_game(
                 backend_name=args.backend,
@@ -92,6 +93,7 @@ def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[s
                 timeout=args.timeout,
                 replay_log_dir=replay_dir,
                 teams_mode=args.teams,
+                team_metadata=teams.metadata(),
             )
         )
 
@@ -301,7 +303,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out-dir", type=Path, default=Path("experiments/backend_experiment"))
     parser.add_argument("--force", action="store_true", help="Allow writing into a non-empty output directory")
     parser.add_argument("--backend", choices=["python", "showdown"], default="python")
-    parser.add_argument("--teams", choices=["single", "balance", "random"], default="single")
+    parser.add_argument("--teams", choices=TEAM_MODE_CHOICES, default="single")
     parser.add_argument("--games", type=int, default=5, help="Self-play games to generate")
     parser.add_argument("--turns", type=int, default=20, help="Turn cap for self-play games")
     parser.add_argument("--sims", type=int, default=8, help="MCTS simulations per self-play decision")

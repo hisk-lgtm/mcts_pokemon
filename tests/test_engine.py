@@ -3018,3 +3018,57 @@ def test_run_backend_experiment_writes_complete_python_experiment(tmp_path):
     assert summary["evaluation"]["first"]["games"] == 1
     assert summary["evaluation"]["random"]["games"] == 1
     assert "Backend experiment summary" in (out_dir / "summary.txt").read_text(encoding="utf-8")
+
+
+def test_compare_experiments_reads_current_validation_schema(tmp_path):
+    import json
+
+    from examples.compare_experiments import compare_experiments, render_text_report
+
+    exp_dir = tmp_path / "exp_a"
+    exp_dir.mkdir()
+    summary = {
+        "config": {
+            "backend": "python",
+            "teams": "round-robin",
+            "seed": 7,
+            "games": 2,
+            "turns": 3,
+            "sims": 1,
+            "depth": 0,
+            "feature_schema_version": 5,
+        },
+        "selfplay": {"records": 4},
+        "validation": {
+            "valid": True,
+            "errors": [],
+            "warnings": ["low switch metadata coverage: 0.0%"],
+            "move_metadata_rate": 1.0,
+            "switch_metadata_rate": 0.0,
+        },
+        "training": {"policy_loss_avg": 0.25, "value_loss_avg": 0.5, "updates": 4},
+        "evaluation": {
+            "first": {
+                "games": 1,
+                "agent_win_rate": 1.0,
+                "opponent_win_rate": 0.0,
+                "unresolved_rate": 0.0,
+                "average_turns": 2.0,
+            }
+        },
+    }
+    (exp_dir / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+
+    payload = compare_experiments([exp_dir])
+    row = payload["experiments"][0]
+
+    assert row["validation_ok"] is True
+    assert row["validation_errors"] == 0
+    assert row["validation_warnings"] == 1
+    assert row["move_metadata_rate"] == 1.0
+    assert row["switch_metadata_rate"] == 0.0
+
+    text = render_text_report(payload)
+    assert "True" in text
+    assert "100.0%" in text
+    assert "0.0%" in text
