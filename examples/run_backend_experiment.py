@@ -66,9 +66,72 @@ def _config_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
     }
 
+def _count_metadata_values(rows: list[dict[str, object]], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        value = row.get(key)
+        if value in {None, ""}:
+            label = "unknown"
+        else:
+            label = str(value)
+        counts[label] = counts.get(label, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _team_pair_id(row: dict[str, object]) -> str:
+    team1 = row.get("team1_id") or "unknown"
+    team2 = row.get("team2_id") or "unknown"
+    return f"{team1}_vs_{team2}"
+
+
+def _summarize_team_metadata(rows: list[dict[str, object]]) -> dict[str, object]:
+    pair_rows = [{"team_pair_id": _team_pair_id(row)} for row in rows]
+    matchup_counts = _count_metadata_values(rows, "matchup_id")
+    return {
+        "games_with_metadata": len(rows),
+        "unique_matchups": len(matchup_counts),
+        "matchup_counts": matchup_counts,
+        "mode_counts": _count_metadata_values(rows, "mode"),
+        "team1_counts": _count_metadata_values(rows, "team1_id"),
+        "team2_counts": _count_metadata_values(rows, "team2_id"),
+        "team_pair_counts": _count_metadata_values(pair_rows, "team_pair_id"),
+    }
+
+def _count_metadata_values(rows: list[dict[str, object]], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        value = row.get(key)
+        if value in {None, ""}:
+            label = "unknown"
+        else:
+            label = str(value)
+        counts[label] = counts.get(label, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _team_pair_id(row: dict[str, object]) -> str:
+    team1 = row.get("team1_id") or "unknown"
+    team2 = row.get("team2_id") or "unknown"
+    return f"{team1}_vs_{team2}"
+
+
+def _summarize_team_metadata(rows: list[dict[str, object]]) -> dict[str, object]:
+    pair_rows = [{"team_pair_id": _team_pair_id(row)} for row in rows]
+    matchup_counts = _count_metadata_values(rows, "matchup_id")
+    return {
+        "games_with_metadata": len(rows),
+        "unique_matchups": len(matchup_counts),
+        "matchup_counts": matchup_counts,
+        "mode_counts": _count_metadata_values(rows, "mode"),
+        "team1_counts": _count_metadata_values(rows, "team1_id"),
+        "team2_counts": _count_metadata_values(rows, "team2_id"),
+        "team_pair_counts": _count_metadata_values(pair_rows, "team_pair_id"),
+    }
+
 
 def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[str, Any]]:
     records: list[dict[str, Any]] = []
+    team_metadata_rows: list[dict[str, object]] = []
     rng = random.Random(args.seed)
     replay_dir = out_dir / "replays" / "selfplay" if args.save_replay_logs else None
 
@@ -76,6 +139,10 @@ def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[s
         game_seed = args.seed + game_id
         team_rng = random.Random(game_seed)
         teams = build_teams(args.teams, team_rng, game_id=game_id)
+        team_metadata = teams.metadata()
+        teams = build_teams(args.teams, team_rng, game_id=game_id)
+        team_metadata = teams.metadata()
+        team_metadata_rows.append(team_metadata)
         records.extend(
             play_backend_game(
                 backend_name=args.backend,
@@ -93,7 +160,7 @@ def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[s
                 timeout=args.timeout,
                 replay_log_dir=replay_dir,
                 teams_mode=args.teams,
-                team_metadata=teams.metadata(),
+                team_metadata=team_metadata,
             )
         )
 
@@ -112,6 +179,7 @@ def _run_selfplay(args: argparse.Namespace, out_dir: Path) -> tuple[Path, dict[s
         "games": args.games,
         "backend": args.backend,
         "teams": args.teams,
+        "team_metadata": _summarize_team_metadata(team_metadata_rows),
         "winner_record_counts": winners,
         "replay_dir": str(replay_dir) if replay_dir else None,
     }
@@ -204,6 +272,11 @@ def _write_summary_text(
         f"seed: {config['seed']}",
         f"self-play: games={config['games']} turns={config['turns']} sims={config['sims']} depth={config['depth']}",
         f"records: {selfplay_summary['records']}",
+        (
+            "matchups: "
+            f"unique={selfplay_summary.get('team_metadata', {}).get('unique_matchups', 0)} "
+            f"counts={selfplay_summary.get('team_metadata', {}).get('matchup_counts', {})}"
+        ),
         "validation: see validation_report.json",
         f"training: epochs={config['epochs']} learning_rate={config['learning_rate']} updates={train_metrics.get('updates')}",
         f"policy_loss_avg: {float(train_metrics.get('policy_loss_avg', 0.0)):.4f}",

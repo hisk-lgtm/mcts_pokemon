@@ -3072,3 +3072,64 @@ def test_compare_experiments_reads_current_validation_schema(tmp_path):
     assert "True" in text
     assert "100.0%" in text
     assert "0.0%" in text
+
+
+def test_run_backend_experiment_summarizes_round_robin_matchup_coverage(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    out_dir = tmp_path / "round_robin_experiment"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "examples/run_backend_experiment.py"),
+            "--backend",
+            "python",
+            "--teams",
+            "round-robin",
+            "--games",
+            "5",
+            "--turns",
+            "1",
+            "--sims",
+            "1",
+            "--depth",
+            "0",
+            "--epochs",
+            "1",
+            "--eval-games",
+            "1",
+            "--eval-turns",
+            "1",
+            "--eval-opponents",
+            "first",
+            "--out-dir",
+            str(out_dir),
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stdout
+    selfplay_summary = json.loads((out_dir / "selfplay_summary.json").read_text(encoding="utf-8"))
+    team_metadata = selfplay_summary["team_metadata"]
+    assert team_metadata["games_with_metadata"] == 5
+    assert team_metadata["unique_matchups"] == 5
+    assert team_metadata["matchup_counts"] == {
+        "balance_a_vs_b": 1,
+        "balance_b_vs_a": 1,
+        "mirror_balance_a": 1,
+        "mirror_balance_b": 1,
+        "single_tyranitar_vs_dragonite": 1,
+    }
+    assert team_metadata["team_pair_counts"]["balance_a_vs_balance_b"] == 1
+    assert team_metadata["team_pair_counts"]["balance_b_vs_balance_a"] == 1
+    summary_text = (out_dir / "summary.txt").read_text(encoding="utf-8")
+    assert "matchups:" in summary_text
+
