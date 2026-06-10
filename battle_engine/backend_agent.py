@@ -70,6 +70,51 @@ def _record_context(record: dict[str, Any]) -> tuple[dict[str, Any], int, list[A
         legal.append(chosen)
     return summary, player, legal, chosen
 
+def _normalize_action_targets(targets: dict[Action, float]) -> dict[Action, float]:
+    positive = {action: max(0.0, float(weight)) for action, weight in targets.items() if weight and weight > 0}
+    total = sum(positive.values())
+    if total <= 0.0:
+        return {}
+    return {action: weight / total for action, weight in positive.items()}
+
+
+def _policy_targets_from_mcts(record: dict[str, Any], legal: list[Action], chosen: Action) -> tuple[dict[Action, float], str]:
+    """Extract a policy target distribution from root MCTS visit counts.
+
+    Older records only have a single chosen action. Newer backend self-play
+    records also include per-root-action MCTS stats. When available, those
+    visits are a better target because they preserve MCTS uncertainty instead
+    of collapsing the search result to one click.
+    """
+    mcts = record.get("mcts")
+    stats = mcts.get("stats") if isinstance(mcts, dict) else None
+    if not isinstance(stats, list):
+        return {chosen: 1.0}, "chosen_action"
+
+    targets: dict[Action, float] = {}
+    for row in stats:
+        if not isinstance(row, dict):
+            continue
+        action_payload = row.get("action")
+        if not isinstance(action_payload, dict):
+            continue
+        try:
+            visits = float(row.get("visits", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if visits <= 0.0:
+            continue
+        action = action_from_payload(action_payload)
+        targets[action] = targets.get(action, 0.0) + visits
+
+    normalized = _normalize_action_targets(targets)
+    if not normalized:
+        return {chosen: 1.0}, "chosen_action"
+
+    for action in normalized:
+        if action not in legal:
+            legal.append(action)
+    return normalized, "mcts_visits"
 
 def action_to_payload(action: Action | dict[str, Any]) -> dict[str, Any]:
     parsed = action_from_payload(action)
@@ -238,6 +283,55 @@ class BackendLinearPolicyValueAgent:
             "policy": _top_weights(self.policy_weights, limit=limit),
             "value": _top_weights(self.value_weights, limit=limit),
         }
+    def update_policy_toward_distribution(
+        self,
+        summary: dict[str, Any],
+        player: int,
+        targets: dict[Action, float],
+        legal: list[Action | dict[str, Any]],
+    ) -> dict[str, float]:
+        parsed_legal = [action_from_payload(action) for action in legal]
+        normalized_targets = _normalize_action_targets(targets)
+        for action in normalized_targets:
+            if action not in parsed_legal:
+                parsed_legal.append(action)
+        if not parsed_legal or not normalized_targets:
+            return {
+                "policy_loss": 0.0,
+                "chosen_probability": 0.0,
+                "target_entropy": 0.0,
+                "target_action_count": 0.0,
+            }
+
+        priors = self.action_priors(summary, player, parsed_legal)
+
+        model_expected: dict[str, float] = {}
+        for action, prob in priors.items():
+            for key, value in backend_action_features(summary, player, action).items():
+                model_expected[key] = model_expected.get(key, 0.0) + prob * value
+
+        target_expected: dict[str, float] = {}
+        policy_loss = 0.0
+        target_entropy = 0.0
+        for action, target_prob in normalized_targets.items():
+            model_prob = max(1e-12, priors.get(action, 1e-12))
+            policy_loss += -target_prob * math.log(model_prob)
+            target_entropy += -target_prob * math.log(max(1e-12, target_prob))
+            for key, value in backend_action_features(summary, player, action).items():
+                target_expected[key] = target_expected.get(key, 0.0) + target_prob * value
+
+        for key, target_value in target_expected.items():
+            gradient = target_value - model_expected.get(key, 0.0)
+            if gradient:
+                self.policy_weights[key] = self.policy_weights.get(key, 0.0) + self.learning_rate * gradient
+
+        chosen_action = max(normalized_targets.items(), key=lambda item: item[1])[0]
+        return {
+            "policy_loss": policy_loss,
+            "chosen_probability": max(1e-12, priors.get(chosen_action, 1e-12)),
+            "target_entropy": target_entropy,
+            "target_action_count": float(len(normalized_targets)),
+        }
 
     def update_policy_toward(
         self,
@@ -247,30 +341,7 @@ class BackendLinearPolicyValueAgent:
         legal: list[Action | dict[str, Any]],
     ) -> dict[str, float]:
         parsed_chosen = action_from_payload(chosen)
-        parsed_legal = [action_from_payload(action) for action in legal]
-        if parsed_chosen not in parsed_legal:
-            parsed_legal.append(parsed_chosen)
-        if not parsed_legal:
-            return {"policy_loss": 0.0, "chosen_probability": 0.0}
-
-        priors = self.action_priors(summary, player, parsed_legal)
-        chosen_prob = max(1e-12, priors.get(parsed_chosen, 1e-12))
-        chosen_features = backend_action_features(summary, player, parsed_chosen)
-
-        expected: dict[str, float] = {}
-        for action, prob in priors.items():
-            for key, value in backend_action_features(summary, player, action).items():
-                expected[key] = expected.get(key, 0.0) + prob * value
-
-        for key, value in chosen_features.items():
-            gradient = value - expected.get(key, 0.0)
-            if gradient:
-                self.policy_weights[key] = self.policy_weights.get(key, 0.0) + self.learning_rate * gradient
-
-        return {
-            "policy_loss": -math.log(chosen_prob),
-            "chosen_probability": chosen_prob,
-        }
+        return self.update_policy_toward_distribution(summary, player, {parsed_chosen: 1.0}, legal)
 
     def update_value(self, summary: dict[str, Any], player: int, target_value: float) -> dict[str, float]:
         target = max(-1.0, min(1.0, float(target_value)))
@@ -287,16 +358,20 @@ class BackendLinearPolicyValueAgent:
 
     def update_from_record(self, record: dict[str, Any]) -> dict[str, float | str | None]:
         summary, player, legal, chosen = _record_context(record)
+        policy_targets, target_source = _policy_targets_from_mcts(record, legal, chosen)
         metrics: dict[str, float | str | None] = {
             "action_label": backend_action_label(chosen),
+            "policy_target_source": target_source,
             "policy_loss": None,
             "chosen_probability": None,
+            "target_entropy": None,
+            "target_action_count": None,
             "value_prediction": None,
             "value_error": None,
             "value_loss": None,
         }
 
-        policy_metrics = self.update_policy_toward(summary, player, chosen, legal)
+        policy_metrics = self.update_policy_toward_distribution(summary, player, policy_targets, legal)
         metrics.update(policy_metrics)
 
         target = _target_value(record)

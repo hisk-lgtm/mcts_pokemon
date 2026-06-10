@@ -49,6 +49,9 @@ def train_records(
         "policy_loss_total": 0.0,
         "value_loss_total": 0.0,
         "value_updates": 0,
+        "mcts_visit_policy_updates": 0,
+        "chosen_action_policy_updates": 0,
+        "target_entropy_total": 0.0,
     }
 
     for _epoch in range(epochs):
@@ -59,11 +62,18 @@ def train_records(
             metrics["updates"] += 1
             if result.get("policy_loss") is not None:
                 metrics["policy_loss_total"] += float(result["policy_loss"])
+            if result.get("policy_target_source") == "mcts_visits":
+                metrics["mcts_visit_policy_updates"] += 1
+            elif result.get("policy_target_source") == "chosen_action":
+                metrics["chosen_action_policy_updates"] += 1
+            if result.get("target_entropy") is not None:
+                metrics["target_entropy_total"] += float(result["target_entropy"])
             if result.get("value_loss") is not None:
                 metrics["value_updates"] += 1
                 metrics["value_loss_total"] += float(result["value_loss"])
 
     metrics["policy_loss_avg"] = _average(float(metrics["policy_loss_total"]), int(metrics["updates"]))
+    metrics["target_entropy_avg"] = _average(float(metrics["target_entropy_total"]), int(metrics["updates"]))
     metrics["value_loss_avg"] = _average(float(metrics["value_loss_total"]), int(metrics["value_updates"]))
     metrics["policy_weight_count"] = len(agent.policy_weights)
     metrics["value_weight_count"] = len(agent.value_weights)
