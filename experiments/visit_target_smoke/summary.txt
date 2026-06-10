@@ -1,0 +1,26 @@
+Backend experiment summary
+==========================
+
+backend: python
+teams: single
+seed: 1
+self-play: games=2 turns=2 sims=2 depth=1
+records: 8
+matchups: unique=1 counts={'single_tyranitar_vs_dragonite': 2}
+validation: see validation_report.json
+training: epochs=1 learning_rate=0.05 updates=8
+policy targets: mcts_visits=8 chosen_action=0 target_entropy_avg=0.5199
+policy_loss_avg: 1.2292
+value_loss_avg: 0.4857
+
+Evaluation
+----------
+first: agent_wins=0 opponent_wins=0 unresolved=1 agent_win_rate=0.0% avg_turns=1.00
+
+Artifacts
+---------
+config.json
+selfplay.jsonl
+agent.json
+train_metrics.json
+eval_<opponent>.json

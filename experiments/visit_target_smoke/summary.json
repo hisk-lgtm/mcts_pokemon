@@ -1,0 +1,160 @@
+{
+  "artifacts": {
+    "agent": "experiments\\visit_target_smoke\\agent.json",
+    "config": "experiments\\visit_target_smoke\\config.json",
+    "selfplay": "experiments\\visit_target_smoke\\selfplay.jsonl",
+    "selfplay_summary": "experiments\\visit_target_smoke\\selfplay_summary.json",
+    "summary_text": "experiments\\visit_target_smoke\\summary.txt",
+    "train_metrics": "experiments\\visit_target_smoke\\train_metrics.json",
+    "validation_report": "experiments\\visit_target_smoke\\validation_report.json"
+  },
+  "config": {
+    "agent_name": "",
+    "agent_player": 1,
+    "agent_temperature": 0.0,
+    "backend": "python",
+    "created_at_utc": "2026-06-10T06:51:20+00:00",
+    "depth": 1,
+    "epochs": 1,
+    "eval_games": 1,
+    "eval_mcts_depth": 4,
+    "eval_mcts_sims": 8,
+    "eval_opponents": [
+      "first"
+    ],
+    "eval_turns": 1,
+    "explain_top": 0,
+    "feature_schema_version": 5,
+    "format": "gen5ou",
+    "games": 2,
+    "learning_rate": 0.05,
+    "node_bin": "node",
+    "save_replay_logs": false,
+    "seed": 1,
+    "showdown_root": null,
+    "sims": 2,
+    "strict_validation": false,
+    "teams": "single",
+    "timeout": 30,
+    "trace_actions": 0,
+    "turns": 2
+  },
+  "evaluation": {
+    "first": {
+      "agent_feature_schema_version": 5,
+      "agent_name": "backend-experiment-visit_target_smoke",
+      "agent_player": 1,
+      "agent_win_rate": 0.0,
+      "agent_wins": 0,
+      "average_turns": 1.0,
+      "backend": "python",
+      "explain_top": 0,
+      "feature_schema_version": 5,
+      "games": 1,
+      "mcts_depth": 4,
+      "mcts_sims": 8,
+      "opponent": "first",
+      "opponent_win_rate": 0.0,
+      "opponent_wins": 0,
+      "p1_wins": 0,
+      "p2_wins": 0,
+      "replay_dir": null,
+      "report_path": "experiments\\visit_target_smoke\\eval_first.json",
+      "seed": 10001,
+      "teams": "single",
+      "trace_actions": 0,
+      "turn_limit": 1,
+      "unresolved": 1,
+      "unresolved_rate": 1.0
+    }
+  },
+  "selfplay": {
+    "backend": "python",
+    "games": 2,
+    "path": "experiments\\visit_target_smoke\\selfplay.jsonl",
+    "records": 8,
+    "replay_dir": null,
+    "team_metadata": {
+      "games_with_metadata": 2,
+      "matchup_counts": {
+        "single_tyranitar_vs_dragonite": 2
+      },
+      "mode_counts": {
+        "single": 2
+      },
+      "team1_counts": {
+        "tyranitar_cb": 2
+      },
+      "team2_counts": {
+        "dragonite_dd": 2
+      },
+      "team_pair_counts": {
+        "tyranitar_cb_vs_dragonite_dd": 2
+      },
+      "unique_matchups": 1
+    },
+    "teams": "single",
+    "winner_record_counts": {
+      "1": 4,
+      "None": 4
+    }
+  },
+  "training": {
+    "agent_name": "backend-experiment-visit_target_smoke",
+    "chosen_action_policy_updates": 0,
+    "epochs": 1,
+    "feature_schema_version": 5,
+    "input_files": [
+      "experiments\\visit_target_smoke\\selfplay.jsonl"
+    ],
+    "learning_rate": 0.05,
+    "mcts_visit_policy_updates": 8,
+    "model_schema_version": 1,
+    "output_model": "experiments\\visit_target_smoke\\agent.json",
+    "policy_loss_avg": 1.2292464166491583,
+    "policy_loss_total": 9.833971333193267,
+    "policy_weight_count": 37,
+    "records": 8,
+    "target_entropy_avg": 0.5198603854199589,
+    "target_entropy_total": 4.1588830833596715,
+    "updates": 8,
+    "value_loss_avg": 0.4857271378437512,
+    "value_loss_total": 3.8858171027500097,
+    "value_updates": 8,
+    "value_weight_count": 15
+  },
+  "validation": {
+    "action_kind_counts": {
+      "move": 29
+    },
+    "backend_counts": {
+      "python": 8
+    },
+    "chosen_kind_counts": {
+      "move": 8
+    },
+    "decision_records": 8,
+    "errors": [],
+    "feature_schema_version": 5,
+    "move_actions": 29,
+    "move_actions_with_metadata": 29,
+    "move_metadata_rate": 1.0,
+    "paths": [
+      "experiments\\visit_target_smoke\\selfplay.jsonl"
+    ],
+    "player_counts": {
+      "1": 4,
+      "2": 4
+    },
+    "records": 8,
+    "switch_actions": 0,
+    "switch_actions_with_metadata": 0,
+    "switch_metadata_rate": 0.0,
+    "valid": true,
+    "warnings": [],
+    "winner_counts": {
+      "1": 4,
+      "None": 4
+    }
+  }
+}

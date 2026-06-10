@@ -1,0 +1,126 @@
+{
+  "agent_name": "backend-experiment-visit_target_smoke",
+  "chosen_action_policy_updates": 0,
+  "epochs": 1,
+  "feature_schema_version": 5,
+  "input_files": [
+    "experiments\\visit_target_smoke\\selfplay.jsonl"
+  ],
+  "learning_rate": 0.05,
+  "mcts_visit_policy_updates": 8,
+  "model_schema_version": 1,
+  "output_model": "experiments\\visit_target_smoke\\agent.json",
+  "policy_loss_avg": 1.2292464166491583,
+  "policy_loss_total": 9.833971333193267,
+  "policy_weight_count": 37,
+  "records": 8,
+  "target_entropy_avg": 0.5198603854199589,
+  "target_entropy_total": 4.1588830833596715,
+  "top_weights": {
+    "policy": [
+      {
+        "feature": "move_effective_power",
+        "weight": 0.05620828005697031
+      },
+      {
+        "feature": "move_effectiveness",
+        "weight": 0.04988782279194599
+      },
+      {
+        "feature": "move_type_ground",
+        "weight": -0.03581501050455635
+      },
+      {
+        "feature": "move_immune",
+        "weight": -0.03581501050455635
+      },
+      {
+        "feature": "move_damage_estimate",
+        "weight": 0.03573675724841258
+      },
+      {
+        "feature": "move_type_rock",
+        "weight": 0.034664121084804385
+      },
+      {
+        "feature": "move_super_effective",
+        "weight": 0.034664121084804385
+      },
+      {
+        "feature": "move_can_ko",
+        "weight": 0.034664121084804385
+      },
+      {
+        "feature": "move_expected_can_ko",
+        "weight": 0.034664121084804385
+      },
+      {
+        "feature": "move_neutral",
+        "weight": -0.03334138733313369
+      },
+      {
+        "feature": "move_resisted",
+        "weight": 0.027801935910941815
+      },
+      {
+        "feature": "move_expected_damage",
+        "weight": 0.026514657077507945
+      }
+    ],
+    "value": [
+      {
+        "feature": "own_type_rock",
+        "weight": 0.09786818832215838
+      },
+      {
+        "feature": "own_type_dark",
+        "weight": 0.09786818832215838
+      },
+      {
+        "feature": "opp_type_flying",
+        "weight": 0.09786818832215838
+      },
+      {
+        "feature": "opp_type_dragon",
+        "weight": 0.09786818832215838
+      },
+      {
+        "feature": "own_type_flying",
+        "weight": -0.06164669944209993
+      },
+      {
+        "feature": "own_type_dragon",
+        "weight": -0.06164669944209993
+      },
+      {
+        "feature": "opp_type_rock",
+        "weight": -0.06164669944209993
+      },
+      {
+        "feature": "opp_type_dark",
+        "weight": -0.06164669944209993
+      },
+      {
+        "feature": "own_active_hp",
+        "weight": 0.04930735164972325
+      },
+      {
+        "feature": "bias",
+        "weight": 0.03622148888005845
+      },
+      {
+        "feature": "weather_sandstorm",
+        "weight": 0.03622148888005845
+      },
+      {
+        "feature": "active_hp_diff",
+        "weight": 0.03042445432303182
+      }
+    ]
+  },
+  "updates": 8,
+  "value_loss_avg": 0.4857271378437512,
+  "value_loss_total": 3.8858171027500097,
+  "value_updates": 8,
+  "value_weight_count": 15
+}

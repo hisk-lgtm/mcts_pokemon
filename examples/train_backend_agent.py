@@ -157,7 +157,11 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "Trained backend agent: "
         f"records={metrics['records']} epochs={metrics['epochs']} updates={metrics['updates']} "
-        f"policy_loss={metrics['policy_loss_avg']:.4f} value_loss={metrics['value_loss_avg']:.4f} "
+        f"policy_loss={metrics['policy_loss_avg']:.4f} "
+        f"target_entropy={metrics.get('target_entropy_avg', 0.0):.4f} "
+        f"value_loss={metrics['value_loss_avg']:.4f} "
+        f"targets=mcts:{metrics.get('mcts_visit_policy_updates', 0)} "
+        f"chosen:{metrics.get('chosen_action_policy_updates', 0)} "
         f"policy_weights={metrics['policy_weight_count']} value_weights={metrics['value_weight_count']} "
         f"feature_schema=v{metrics['feature_schema_version']}"
     )

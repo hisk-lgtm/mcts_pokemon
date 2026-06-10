@@ -279,6 +279,12 @@ def _write_summary_text(
         ),
         "validation: see validation_report.json",
         f"training: epochs={config['epochs']} learning_rate={config['learning_rate']} updates={train_metrics.get('updates')}",
+        (
+            "policy targets: "
+            f"mcts_visits={train_metrics.get('mcts_visit_policy_updates', 0)} "
+            f"chosen_action={train_metrics.get('chosen_action_policy_updates', 0)} "
+            f"target_entropy_avg={float(train_metrics.get('target_entropy_avg', 0.0)):.4f}"
+        ),
         f"policy_loss_avg: {float(train_metrics.get('policy_loss_avg', 0.0)):.4f}",
         f"value_loss_avg: {float(train_metrics.get('value_loss_avg', 0.0)):.4f}",
         "",

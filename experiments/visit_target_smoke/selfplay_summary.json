@@ -1,0 +1,31 @@
+{
+  "backend": "python",
+  "games": 2,
+  "path": "experiments\\visit_target_smoke\\selfplay.jsonl",
+  "records": 8,
+  "replay_dir": null,
+  "team_metadata": {
+    "games_with_metadata": 2,
+    "matchup_counts": {
+      "single_tyranitar_vs_dragonite": 2
+    },
+    "mode_counts": {
+      "single": 2
+    },
+    "team1_counts": {
+      "tyranitar_cb": 2
+    },
+    "team2_counts": {
+      "dragonite_dd": 2
+    },
+    "team_pair_counts": {
+      "tyranitar_cb_vs_dragonite_dd": 2
+    },
+    "unique_matchups": 1
+  },
+  "teams": "single",
+  "winner_record_counts": {
+    "1": 4,
+    "None": 4
+  }
+}
