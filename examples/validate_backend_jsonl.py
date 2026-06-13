@@ -41,8 +41,16 @@ def main(argv: list[str] | None = None) -> int:
             f"Backend JSONL validation: {status} | records={report.records} "
             f"decisions={report.decision_records} errors={len(report.errors)} warnings={len(report.warnings)}"
         )
-        print(f"Move metadata coverage: {report.move_metadata_rate:.1%} ({report.move_actions_with_metadata}/{report.move_actions})")
-        print(f"Switch metadata coverage: {report.switch_metadata_rate:.1%} ({report.switch_actions_with_metadata}/{report.switch_actions})")
+        print(
+            f"Move metadata coverage: {report.move_metadata_rate:.1%} ({report.move_actions_with_metadata}/{report.move_actions})")
+        print(
+            f"Switch metadata coverage: {report.switch_metadata_rate:.1%} ({report.switch_actions_with_metadata}/{report.switch_actions})")
+        print(
+            "MCTS visit target coverage: "
+            f"{report.mcts_visit_target_rate:.1%} "
+            f"({report.mcts_records_with_visit_stats}/{report.decision_records} decision records, "
+            f"{report.mcts_actions_with_visits} actions, {report.mcts_total_visits:g} visits)"
+        )
         if report.errors:
             print("Errors:")
             for message in report.errors[:25]:

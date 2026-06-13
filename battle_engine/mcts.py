@@ -3,12 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import math
 import random
-from typing import Callable
+from typing import Any, Callable
 
 from .backends.base import BattleBackend
 from .engine import evaluate_material, legal_actions, needs_replacement, replace_fainted, step
 from .features import action_label
 from .model import Action, BattleState
+
 
 
 
@@ -78,6 +79,49 @@ def _summary_side_score(side: dict) -> float:
     active_fraction = hp / max_hp if max_hp > 0 and hp > 0 else 0.0
     return alive + active_fraction
 
+def _normalize_backend_priors(actions: list[Action], priors: dict[Action, float]) -> dict[Action, float]:
+    positive = {action: max(0.0, float(priors.get(action, 0.0))) for action in actions}
+    total = sum(positive.values())
+    if total <= 0.0:
+        return {action: 1.0 / len(actions) for action in actions} if actions else {}
+    return {action: value / total for action, value in positive.items()}
+
+
+def _call_backend_policy_prior(
+    policy_prior: Callable[[dict[str, Any], int, list[Action]], dict[Action, float]] | None,
+    summary: dict[str, Any],
+    player: int,
+    actions: list[Action],
+) -> dict[Action, float]:
+    if policy_prior is None:
+        return {}
+    try:
+        priors = policy_prior(summary, player, actions)
+    except Exception:
+        return {}
+    if not isinstance(priors, dict):
+        return {}
+
+    cleaned: dict[Action, float] = {}
+    for action in actions:
+        try:
+            cleaned[action] = float(priors.get(action, 0.0))
+        except (TypeError, ValueError):
+            cleaned[action] = 0.0
+    return cleaned
+
+
+def _call_backend_value_fn(
+    value_fn: Callable[[dict[str, Any], int], float] | None,
+    summary: dict[str, Any],
+    player: int,
+) -> float | None:
+    if value_fn is None:
+        return None
+    try:
+        return max(-1.0, min(1.0, float(value_fn(summary, player))))
+    except Exception:
+        return None
 
 def _evaluate_backend_material(backend: BattleBackend, player: int) -> float:
     summary = backend.state_summary()
@@ -173,40 +217,51 @@ class MCTSAgent:
         best = max(stats.values(), key=lambda s: (s.visits, s.mean_value, s.prior))
         return MCTSResult(action=best.action, stats=list(stats.values()), simulations=self.config.simulations)
 
-    def search_backend(self, backend: BattleBackend, player: int | None = None) -> MCTSResult:
+    def search_backend(
+        self,
+        backend: BattleBackend,
+        player: int | None = None,
+        *,
+        policy_prior: Callable[[dict[str, Any], int, list[Action]], dict[Action, float]] | None = None,
+        value_fn: Callable[[dict[str, Any], int], float] | None = None,
+    ) -> MCTSResult:
         """Run root-action MCTS using a mutable BattleBackend.
 
-        This path is intentionally simpler than the BattleState path: it uses
-        uniform root priors and the backend's serializable state summary for the
-        depth-limit material heuristic. The existing BattleState search remains
-        the richer path for ML policy/value features until those are made
-        backend-neutral.
+        Backend search can optionally use backend-neutral policy priors and leaf
+        values. A trained BackendLinearPolicyValueAgent already exposes methods
+        with the right shape: pass agent.action_priors and agent.evaluate.
         """
         player = player or self.config.player
         root_actions = backend.legal_actions(player)
         if not root_actions:
             raise ValueError("No legal actions at MCTS root.")
 
-        prior = 1.0 / len(root_actions)
         summary = backend.state_summary()
+        raw_priors = _call_backend_policy_prior(policy_prior, summary, player, root_actions)
+        priors = _normalize_backend_priors(root_actions, raw_priors)
         stats = {
             action: RootActionStats(
                 action=action,
                 label=_backend_action_label(summary, player, action),
-                prior=prior,
+                prior=priors.get(action, 0.0),
             )
             for action in root_actions
         }
 
         for _ in range(self.config.simulations):
             action = self._select_root_action(stats)
-            value = self._simulate_after_root_backend_action(backend, player, action)
+            value = self._simulate_after_root_backend_action(
+                backend,
+                player,
+                action,
+                policy_prior=policy_prior,
+                value_fn=value_fn,
+            )
             stats[action].visits += 1
             stats[action].total_value += value
 
         best = max(stats.values(), key=lambda s: (s.visits, s.mean_value, s.prior))
         return MCTSResult(action=best.action, stats=list(stats.values()), simulations=self.config.simulations)
-
     def _select_root_action(self, stats: dict[Action, RootActionStats]) -> Action:
         total_visits = sum(s.visits for s in stats.values()) + 1
         best_score = -1e18
@@ -289,18 +344,92 @@ class MCTSAgent:
         backend: BattleBackend,
         player: int,
         root_action: Action,
+        *,
+        policy_prior: Callable[[dict[str, Any], int, list[Action]], dict[Action, float]] | None = None,
+        value_fn: Callable[[dict[str, Any], int], float] | None = None,
     ) -> float:
         sim = backend.clone()
         opponent = 3 - player
         opponent_actions = sim.legal_actions(opponent)
         if not opponent_actions:
-            return _evaluate_backend_material(sim, player)
-        opponent_action = self.rng.choice(opponent_actions)
+            return self._evaluate_backend_leaf(sim, player, value_fn=value_fn)
+
+        opponent_action = self._sample_backend_action(sim, opponent, policy_prior=policy_prior)
         if player == 1:
             sim.step(root_action, opponent_action)
         else:
             sim.step(opponent_action, root_action)
-        return self._rollout_backend(sim, player)
+        return self._rollout_backend(sim, player, policy_prior=policy_prior, value_fn=value_fn)
+
+    def _rollout_backend(
+        self,
+        backend: BattleBackend,
+        player: int,
+        *,
+        policy_prior: Callable[[dict[str, Any], int, list[Action]], dict[Action, float]] | None = None,
+        value_fn: Callable[[dict[str, Any], int], float] | None = None,
+    ) -> float:
+        sim = backend
+        for _ in range(self.config.max_depth):
+            winner = sim.winner()
+            if winner is not None:
+                if winner == 0:
+                    return 0.0
+                return 1.0 if winner == player else -1.0
+
+            self._handle_backend_replacements_randomly(sim)
+
+            p1_actions = sim.legal_actions(1)
+            p2_actions = sim.legal_actions(2)
+            if not p1_actions or not p2_actions:
+                return self._evaluate_backend_leaf(sim, player, value_fn=value_fn)
+
+            sim.step(
+                self._sample_backend_action(sim, 1, policy_prior=policy_prior),
+                self._sample_backend_action(sim, 2, policy_prior=policy_prior),
+            )
+
+        winner = sim.winner()
+        if winner is not None:
+            if winner == 0:
+                return 0.0
+            return 1.0 if winner == player else -1.0
+        return self._evaluate_backend_leaf(sim, player, value_fn=value_fn)
+
+    def _sample_backend_action(
+        self,
+        backend: BattleBackend,
+        player: int,
+        *,
+        policy_prior: Callable[[dict[str, Any], int, list[Action]], dict[Action, float]] | None = None,
+    ) -> Action:
+        actions = backend.legal_actions(player)
+        if not actions:
+            raise ValueError(f"No legal actions for player {player}.")
+        priors = _normalize_backend_priors(
+            actions,
+            _call_backend_policy_prior(policy_prior, backend.state_summary(), player, actions),
+        )
+        if priors:
+            r = self.rng.random()
+            c = 0.0
+            for action in actions:
+                c += priors.get(action, 0.0)
+                if c >= r:
+                    return action
+        return self.rng.choice(actions)
+
+    def _evaluate_backend_leaf(
+        self,
+        backend: BattleBackend,
+        player: int,
+        *,
+        value_fn: Callable[[dict[str, Any], int], float] | None = None,
+    ) -> float:
+        value = _call_backend_value_fn(value_fn, backend.state_summary(), player)
+        if value is not None:
+            return value
+        return _evaluate_backend_material(backend, player)
 
     def _rollout_backend(self, backend: BattleBackend, player: int) -> float:
         sim = backend

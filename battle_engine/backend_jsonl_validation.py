@@ -29,6 +29,10 @@ class BackendJsonlValidationReport:
     move_actions_with_metadata: int = 0
     switch_actions: int = 0
     switch_actions_with_metadata: int = 0
+    mcts_records: int = 0
+    mcts_records_with_visit_stats: int = 0
+    mcts_actions_with_visits: int = 0
+    mcts_total_visits: float = 0.0
     feature_schema_version: int = FEATURE_SCHEMA_VERSION
 
     @property
@@ -38,6 +42,10 @@ class BackendJsonlValidationReport:
     @property
     def switch_metadata_rate(self) -> float:
         return self.switch_actions_with_metadata / self.switch_actions if self.switch_actions else 0.0
+
+    @property
+    def mcts_visit_target_rate(self) -> float:
+        return self.mcts_records_with_visit_stats / self.decision_records if self.decision_records else 0.0
 
     def add_error(self, message: str) -> None:
         self.valid = False
@@ -65,6 +73,11 @@ class BackendJsonlValidationReport:
             "switch_actions": self.switch_actions,
             "switch_actions_with_metadata": self.switch_actions_with_metadata,
             "switch_metadata_rate": self.switch_metadata_rate,
+            "mcts_records": self.mcts_records,
+            "mcts_records_with_visit_stats": self.mcts_records_with_visit_stats,
+            "mcts_visit_target_rate": self.mcts_visit_target_rate,
+            "mcts_actions_with_visits": self.mcts_actions_with_visits,
+            "mcts_total_visits": self.mcts_total_visits,
             "feature_schema_version": self.feature_schema_version,
         }
 
@@ -112,6 +125,34 @@ def _move_has_metadata(action: dict[str, Any]) -> bool:
 def _switch_has_metadata(action: dict[str, Any]) -> bool:
     return any(action.get(key) not in {None, ""} for key in ("species", "hp", "max_hp", "hp_fraction", "types", "status"))
 
+def _mcts_visit_stats(record: dict[str, Any]) -> tuple[int, float]:
+    """Return usable root-MCTS visit action count and total visits for one decision record."""
+    mcts = record.get("mcts")
+    if not isinstance(mcts, dict):
+        return 0, 0.0
+
+    stats = mcts.get("stats")
+    if not isinstance(stats, list):
+        return 0, 0.0
+
+    action_count = 0
+    total_visits = 0.0
+    for row in stats:
+        if not isinstance(row, dict):
+            continue
+        action = row.get("action")
+        if _action_key(action) is None:
+            continue
+        try:
+            visits = float(row.get("visits", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if visits <= 0.0:
+            continue
+        action_count += 1
+        total_visits += visits
+
+    return action_count, total_visits
 
 def iter_backend_jsonl(paths: Iterable[Path]) -> Iterable[tuple[Path, int, dict[str, Any]]]:
     for path in paths:
@@ -218,7 +259,16 @@ def validate_backend_jsonl(paths: list[Path], *, strict_metadata: bool = False) 
                 _count(report.chosen_kind_counts, chosen_key[0])
                 if legal_keys and chosen_key not in legal_keys:
                     report.add_error(f"{loc}: chosen_action {chosen_key} is not present in legal_actions")
+            if isinstance(record.get("mcts"), dict):
+                report.mcts_records += 1
 
+            mcts_action_count, mcts_total_visits = _mcts_visit_stats(record)
+            if mcts_action_count > 0:
+                report.mcts_records_with_visit_stats += 1
+                report.mcts_actions_with_visits += mcts_action_count
+                report.mcts_total_visits += mcts_total_visits
+            elif isinstance(record.get("mcts"), dict):
+                report.add_warning(f"{loc}: mcts.stats has no usable positive visit counts; trainer will fall back to chosen_action")
             try:
                 backend_record_features(record)
             except Exception as exc:
@@ -242,5 +292,8 @@ def validate_backend_jsonl(paths: list[Path], *, strict_metadata: bool = False) 
             report.add_error(msg)
         else:
             report.add_warning(msg)
+
+    if report.decision_records and report.mcts_visit_target_rate < 0.5:
+        report.add_warning(f"low MCTS visit target coverage: {report.mcts_visit_target_rate:.1%}")
 
     return report
